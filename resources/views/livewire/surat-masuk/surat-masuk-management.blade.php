@@ -21,7 +21,6 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
         <input type="text" wire:model.live="search" placeholder="🔍 Cari surat..."
             class="w-full sm:w-64 border rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
-
         <select wire:model.live="perPage"
             class="border rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
             <option value="10">10 / halaman</option>
