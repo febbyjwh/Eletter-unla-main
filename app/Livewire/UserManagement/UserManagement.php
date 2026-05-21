@@ -13,7 +13,8 @@ class UserManagement extends Component
     use WithPagination;
 
     // Form fields
-    public $name, $email, $password, $role, $userId;
+    public $name, $email, $password, $role, $status, $userId;
+    public $selectedRole = [];
     public $isEdit = false;
     public $showModal = false;
 
@@ -32,13 +33,23 @@ class UserManagement extends Component
         'name' => 'required|min:3',
         'email' => 'required|email|unique:users,email',
         'password' => 'required|min:6',
-        'role' => 'required'
+        'role' => 'required',
+        'status' => 'required'
     ];
 
     // Reset pagination when search/filter/perPage updated
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingFilterRole() { $this->resetPage(); }
-    public function updatingPerPage() { $this->resetPage(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterRole()
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
 
     public function render()
     {
@@ -46,9 +57,9 @@ class UserManagement extends Component
 
         // Search by name/email
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('name', 'like', '%'.$this->search.'%')
-                  ->orWhere('email', 'like', '%'.$this->search.'%');
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('email', 'like', '%' . $this->search . '%');
             });
         }
 
@@ -62,7 +73,7 @@ class UserManagement extends Component
         $sortField = in_array($this->sortField, $allowedSort) ? $this->sortField : 'name';
 
         $users = $query->orderBy($sortField, $this->sortDirection)
-                       ->paginate($this->perPage);
+            ->paginate($this->perPage);
 
         return view('livewire.user-management.user-management', [
             'users' => $users,
@@ -94,6 +105,7 @@ class UserManagement extends Component
             $this->name = $user->name;
             $this->email = $user->email;
             $this->role = $user->role_id;
+            $this->status = $user->status;
         }
 
         $this->showModal = true;
@@ -110,6 +122,7 @@ class UserManagement extends Component
         $this->email = '';
         $this->password = '';
         $this->role = '';
+        $this->status = '';
         $this->userId = null;
         $this->isEdit = false;
     }
@@ -139,6 +152,7 @@ class UserManagement extends Component
             'email' => $this->email,
             'password' => Hash::make($this->password),
             'role_id' => $this->role,
+            'status' => $this->status,
         ]);
 
         session()->flash('success', 'User berhasil ditambahkan!');
@@ -152,6 +166,7 @@ class UserManagement extends Component
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users,email,' . $this->userId,
             'role' => 'required',
+            'status' => 'required',
         ]);
 
         $user = User::findOrFail($this->userId);
@@ -159,6 +174,7 @@ class UserManagement extends Component
             'name' => $this->name,
             'email' => $this->email,
             'role_id' => $this->role,
+            'status' => $this->status,
             'password' => $this->password ? Hash::make($this->password) : $user->password,
         ]);
 
@@ -171,5 +187,24 @@ class UserManagement extends Component
     {
         User::findOrFail($id)->delete();
         session()->flash('success', 'User berhasil dihapus!');
+    }
+
+    public function approve($id)
+    {
+        if (empty($this->selectedRole[$id])) {
+            session()->flash('error', 'Pilih role terlebih dahulu.');
+            return;
+        }
+
+        $user = User::findOrFail($id);
+
+        $user->update([
+            'role_id' => $this->selectedRole[$id],
+            'status' => 1,
+        ]);
+
+        unset($this->selectedRole[$id]);
+
+        session()->flash('success', 'User berhasil diverifikasi!');
     }
 }

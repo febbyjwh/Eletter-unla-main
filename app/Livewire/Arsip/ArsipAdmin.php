@@ -5,6 +5,7 @@ namespace App\Livewire\Arsip;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use App\Http\Controllers\GoogleController;
 use App\Models\Arsip;
 use Illuminate\Support\Facades\Storage;
 
@@ -61,19 +62,13 @@ class ArsipAdmin extends Component
         // upload file baru
         if ($this->new_file) {
 
-            // kalau edit & ada file lama → hapus file lama
-            if ($this->isEdit && $this->file_surat) {
-                Storage::disk('public')->delete($this->file_surat);
-            }
+            $googleController = new GoogleController();
 
-            // simpan file baru
-            $fileName = time() . '_' . $this->new_file->getClientOriginalName();
-
-            $filePath = $this->new_file->storeAs(
-                'arsip',
-                $fileName,
-                'public'
+            $upload = $googleController->uploadFileToDrive(
+                $this->new_file
             );
+
+            $filePath = $upload['url'];
         }
 
         $data = [

@@ -16,13 +16,22 @@ class Login extends Component
             'email' => $this->email,
             'password' => $this->password,
         ];
-    
-        if (Auth::attempt($credentials)) {
+
+        if (Auth::attempt([
+            'email' => $this->email,
+            'password' => $this->password,
+        ])) {
+            $user = Auth::user();
+
+            if ($user->status == 0) {
+                Auth::logout();
+                $this->addError('email', 'Akun Anda belum aktif.');
+                return;
+            }
+
             session()->regenerate();
             return redirect()->intended('/dashboard');
         }
-    
-        $this->addError('email', 'Email atau password salah.');
     }
 
     public function render()

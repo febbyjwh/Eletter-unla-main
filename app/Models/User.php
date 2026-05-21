@@ -22,7 +22,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id'
+        'role_id',
+        'google_access_token',
+        'google_refresh_token',
+        'google_token_expires_at',
+        'google_drive_folder_id',
+        'status' // 0 = nonaktif, 1 = aktif
     ];
 
     /**
@@ -71,4 +76,19 @@ class User extends Authenticatable
             ->where('name', $permissionName)
             ->exists();
     }
+
+    public function hasGoogleConnected()
+    {
+        return !empty($this->google_access_token);
+    }
+
+    public function getGoogleClientToken(): ?string
+    {
+        return $this->google_access_token;
+    }
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 }

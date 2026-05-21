@@ -35,6 +35,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'staff',     'description' => 'Mengelola surat masuk/keluar'],
             ['name' => 'dosen',     'description' => 'Mengakses surat akademik'],
             ['name' => 'mahasiswa', 'description' => 'Mengakses surat pribadi'],
+            ['name' => 'guest', 'description' => 'Akun guest'],
         ]);
 
         // =========================
@@ -84,6 +85,7 @@ class RolePermissionSeeder extends Seeder
                 'created_at' => Carbon::parse('2025-09-09 08:34:49'),
                 'updated_at' => Carbon::parse('2025-09-10 09:47:14'),
                 'role_id' => 1,
+                'status' => 1,
             ],
             [
                 'name' => 'Super Admin',
@@ -92,6 +94,7 @@ class RolePermissionSeeder extends Seeder
                 'created_at' => Carbon::parse('2025-09-09 17:19:48'),
                 'updated_at' => Carbon::parse('2025-09-24 20:22:20'),
                 'role_id' => 1,
+                'status' => 1,
             ],
             [
                 'name' => 'Superadmin',
@@ -100,6 +103,8 @@ class RolePermissionSeeder extends Seeder
                 'created_at' => Carbon::parse('2025-09-10 04:19:59'),
                 'updated_at' => Carbon::parse('2025-09-10 04:19:59'),
                 'role_id' => 1,
+                'status' => 1,
+
             ],
             [
                 'name' => 'soni',
@@ -108,6 +113,7 @@ class RolePermissionSeeder extends Seeder
                 'created_at' => Carbon::parse('2025-09-10 08:41:26'),
                 'updated_at' => Carbon::parse('2025-09-10 08:41:26'),
                 'role_id' => 4,
+                'status' => 1,
             ],
             [
                 'name' => 'Mahasiswa',
@@ -116,6 +122,7 @@ class RolePermissionSeeder extends Seeder
                 'created_at' => Carbon::parse('2025-09-11 03:30:26'),
                 'updated_at' => Carbon::parse('2025-09-11 03:30:26'),
                 'role_id' => 4,
+                'status' => 0,
             ],
             [
                 'name' => 'dosen',
@@ -124,6 +131,7 @@ class RolePermissionSeeder extends Seeder
                 'created_at' => Carbon::parse('2025-09-11 04:12:09'),
                 'updated_at' => Carbon::parse('2025-09-11 04:12:24'),
                 'role_id' => 3,
+                'status' => 1,
             ],
         ]);
     }

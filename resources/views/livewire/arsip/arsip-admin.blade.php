@@ -119,8 +119,8 @@
 
                         <td class="p-3">
                             @if ($item->file_surat)
-                                <a href="{{ Storage::url($item->file_surat) }}" target="_blank"
-                                    class="font-medium text-blue-500 hover-blue-600">
+                                <a href="{{ $item->file_surat }}" target="_blank"
+                                    class="font-medium text-blue-500 hover:bg-blue-200 hover:text-blue-500 px-2 py-1 rounded-full">
                                     📄 Preview
                                 </a>
                             @else
@@ -169,7 +169,7 @@
 
                 <!-- Header -->
                 <div class="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
-                    <h3 class="font-semibold text-gray-700">
+                    <h3 class="font-semibold text-gray-800">
                         {{ $isEdit ? '✏️ Edit Arsip' : '➕ Tambah Arsip' }}
                     </h3>
 
