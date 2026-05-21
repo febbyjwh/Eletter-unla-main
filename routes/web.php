@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\Auth\Login;
@@ -22,18 +23,27 @@ use App\Livewire\Arsip\ArsipUser;
 use App\Livewire\Laporan\LaporanManagement;
 
 Route::get('/', Login::class)->name('login');
-Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
-Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+// Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+// Route::get('/auth/google/{role}',[GoogleController::class, 'redirect'])->name('google.redirect');
+
+Route::get('/auth/google/login',[GoogleController::class, 'redirectLogin'])->name('google.login');
+Route::get('/auth/google/register/{role}',[GoogleController::class, 'redirectRegister'])->name('google.register');
+Route::get('/auth/google/callback',[GoogleController::class, 'callback'])->name('google.callback');
+Route::get('/auth/register',[Login::class, 'register'])->name('auth.register');
 
 Route::get('/forgot-password', ForgotPassword::class)->name('password.request');
 Route::get('/reset-password/{email}', ResetPassword::class)->name('password.reset');
 
-Route::post('/logout', function () {
+Route::post('/logout', function (Request $request) {
+
     Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-    return redirect()->route('login');
-})->name('logout');
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/');
+})
+->name('logout');
 
 // waiting approval page
 Route::middleware('auth')->group(function () {

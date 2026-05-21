@@ -23,6 +23,45 @@ class GoogleController extends Controller
             ])
             ->with([
                 'access_type' => 'offline',
+                // 'prompt' => 'consent',
+            ])
+            ->redirect();
+    }
+
+    public function redirectLogin()
+    {
+        session()->forget('selected_role');
+
+        return Socialite::driver('google')
+            ->scopes([
+                'openid',
+                'email',
+                'profile',
+                'https://www.googleapis.com/auth/drive.file',
+            ])
+            ->with([
+                'access_type' => 'offline',
+                // 'prompt' => 'consent',
+            ])
+            ->redirect();
+    }
+
+    public function redirectRegister($role)
+    {
+        session([
+            'selected_role' => $role
+        ]);
+
+        return Socialite::driver('google')
+            ->scopes([
+                'openid',
+                'email',
+                'profile',
+                'https://www.googleapis.com/auth/drive.file',
+            ])
+            ->with([
+                'access_type' => 'offline',
+                'prompt' => 'consent',
             ])
             ->redirect();
     }
@@ -30,79 +69,111 @@ class GoogleController extends Controller
     // CALLBACK GOOGLE
     public function callback()
     {
-        // dd('masuk callback');
         $googleUser = Socialite::driver('google')
-            // ->stateless()
             ->user();
 
-        // cari user berdasarkan email
-
+        // cek user berdasarkan email
         $user = User::where(
             'email',
             $googleUser->email
         )->first();
-        // dd($user);
-        // Auth::login($user);
 
-        // dd([
-        //     'auth_check' => Auth::check(),
-        //     'auth_user' => Auth::user(),
-        // ]);
-        // kalau belum ada → buat pending
+        // ambil role dari session register
+        $selectedRole = session(
+            'selected_role'
+        );
+
+        // user baru
         if (!$user) {
 
+            // kalau ga ada role berarti dari LOGIN
+            if (!$selectedRole) {
+
+                return redirect('/')
+                    ->with(
+                        'error',
+                        'Akun belum terdaftar. Silakan register terlebih dahulu.'
+                    );
+            }
+
+            // kalau ada role berarti dari REGISTER
             $user = User::create([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
 
-                // guest
-                'role_id' => 5,
+                // role dari dropdown
+                'role_id' => $selectedRole,
 
-                // pending
+                // pending approval
                 'status' => 0,
 
                 'password' => bcrypt(
                     str()->random(16)
                 ),
 
-                'google_access_token' => json_encode([
-                    'access_token' => $googleUser->token,
-                    'expires_in' => $googleUser->expiresIn,
+                'google_access_token' =>
+                json_encode([
+                    'access_token' =>
+                    $googleUser->token,
+
+                    'expires_in' =>
+                    $googleUser->expiresIn ?? 3600,
+
                     'created' => time(),
                 ]),
 
-                'google_token_expires_at' => now()->addSeconds($googleUser->expiresIn),
+                'google_token_expires_at' =>
+                now()->addSeconds(
+                    $googleUser->expiresIn ?? 3600
+                ),
 
                 'google_refresh_token' =>
                 $googleUser->refreshToken,
             ]);
 
+            // hapus session role
+            session()->forget(
+                'selected_role'
+            );
+
             return redirect('/')
                 ->with(
                     'error',
-                    'Akun menunggu verifikasi admin.'
+                    'Registrasi berhasil. Akun menunggu verifikasi admin.'
                 );
         }
 
-        // update token saja
+        // update token
         $user->update([
-            'google_access_token' => json_encode([
-                'access_token' => $googleUser->token,
-                'expires_in' => $googleUser->expiresIn,
+            'google_access_token' =>
+            json_encode([
+                'access_token' =>
+                $googleUser->token,
+
+                'expires_in' =>
+                $googleUser->expiresIn ?? 3600,
+
                 'created' => time(),
             ]),
+
+            'google_token_expires_at' =>
+            now()->addSeconds(
+                $googleUser->expiresIn ?? 3600
+            ),
         ]);
 
         // simpan refresh token kalau ada
         if ($googleUser->refreshToken) {
+
             $user->update([
                 'google_refresh_token' =>
                 $googleUser->refreshToken
             ]);
         }
 
-        // cek status
+        // belum diverifikasi admin
         if ($user->status != 1) {
+
             return redirect('/')
                 ->with(
                     'error',
@@ -112,28 +183,58 @@ class GoogleController extends Controller
 
         Auth::login($user);
 
+        // buat folder driver untuk masing masing user kalau belum ada
         $client = new Google_Client();
-        $client->setClientId(config('services.google.client_id'));
-        $client->setClientSecret(config('services.google.client_secret'));
+        $client->setClientId(
+            config(
+                'services.google.client_id'
+            )
+        );
 
-        $token = json_decode($user->google_access_token, true);
-        $client->setAccessToken($token);
+        $client->setClientSecret(
+            config(
+                'services.google.client_secret'
+            )
+        );
 
-        $service = new Google_Service_Drive($client);
+        $token = json_decode(
+            $user->google_access_token,
+            true
+        );
 
-        if (!$user->google_drive_folder_id) {
+        $client->setAccessToken(
+            $token
+        );
 
-            $folderMetadata = new \Google_Service_Drive_DriveFile([
-                'name' => 'E-Letter UNLA',
-                'mimeType' => 'application/vnd.google-apps.folder',
-            ]);
+        $service =
+            new Google_Service_Drive(
+                $client
+            );
 
-            $folder = $service->files->create($folderMetadata, [
-                'fields' => 'id'
-            ]);
+        if (
+            !$user->google_drive_folder_id
+        ) {
+
+            $folderMetadata =
+                new \Google_Service_Drive_DriveFile([
+                    'name' =>
+                    'E-Letter UNLA',
+
+                    'mimeType' =>
+                    'application/vnd.google-apps.folder',
+                ]);
+
+            $folder =
+                $service->files->create(
+                    $folderMetadata,
+                    [
+                        'fields' => 'id'
+                    ]
+                );
 
             $user->update([
-                'google_drive_folder_id' => $folder->id
+                'google_drive_folder_id' =>
+                $folder->id
             ]);
         }
 

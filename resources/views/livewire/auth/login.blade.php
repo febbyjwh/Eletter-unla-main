@@ -59,10 +59,15 @@
                 Login
             </button>
 
-            <a href="{{ route('google.redirect') }}"
-                class="inline-block px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition relative z-50">
+            <a href="{{ route('google.login') }}"
+                class="w-full inline-block px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-center text-sm font-semibold rounded-lg transition relative z-50">
                 Login dengan Google
             </a>
+
+            <div class="text-gray-800 text-sm text-center">
+                Belom punya akun?   
+                <a class="font-medium text-blue-600 text-sm hover:underline" href="{{ route('auth.register') }}">Buat akun E-Letter</a>
+            </div>
         </form>
 
         <!-- Footer -->
