@@ -16,12 +16,14 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
+            $table->string('unit')->nullable();
             $table->integer('role_id')->default(5)->comment('5 = guest');
             $table->longText('google_access_token')->nullable();
             $table->longText('google_refresh_token')->nullable();
             $table->timestamp('google_token_expires_at')->nullable();
             $table->string('google_drive_folder_id')->nullable();
             $table->tinyInteger('status')->default(0)->comment('0 = nonaktif, 1 = aktif');
+            // $table->boolean('drive_access_completed')->default(false);
             $table->timestamps();
         });
     }
@@ -36,6 +38,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('drive_access_completed');
+        });
     }
 };

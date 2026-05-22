@@ -13,10 +13,10 @@ class UserManagement extends Component
     use WithPagination;
 
     // Form fields
-    public $name, $email, $password, $role, $status, $userId;
+    public $name, $email, $password, $unit, $role, $status, $userId;
     public $selectedRole = [];
     public $isEdit = false;
-    public $showModal = false;
+    // public $showModal = false;
 
     // Modal states (macOS style)
     public $isMinimized = false;
@@ -28,11 +28,13 @@ class UserManagement extends Component
     public $perPage = 10;
     public $sortField = 'name';
     public $sortDirection = 'asc';
+    public $isModalOpen = false;
 
     protected $rules = [
         'name' => 'required|min:3',
         'email' => 'required|email|unique:users,email',
         'password' => 'required|min:6',
+        'unit' => 'nullable|string|max:255',
         'role' => 'required',
         'status' => 'required'
     ];
@@ -94,37 +96,43 @@ class UserManagement extends Component
 
     public function openModal($edit = false, $id = null)
     {
-        $this->resetForm();
+        $this->resetValidation();
+
         $this->isEdit = $edit;
-        $this->isMinimized = false;
-        $this->isFullscreen = false;
+        $this->isModalOpen = true;
 
         if ($edit && $id) {
             $user = User::findOrFail($id);
-            $this->userId = $user->id;
-            $this->name = $user->name;
-            $this->email = $user->email;
-            $this->role = $user->role_id;
-            $this->status = $user->status;
-        }
 
-        $this->showModal = true;
+            $this->fill([
+                'userId' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role_id,
+                'status' => $user->status,
+                'unit' => $user->unit,
+            ]);
+        } else {
+            $this->resetForm();
+        }
     }
 
     public function closeModal()
     {
-        $this->showModal = false;
+        $this->isModalOpen = false;
     }
 
     public function resetForm()
     {
-        $this->name = '';
-        $this->email = '';
-        $this->password = '';
-        $this->role = '';
-        $this->status = '';
-        $this->userId = null;
-        $this->isEdit = false;
+        $this->reset([
+            'name',
+            'email',
+            'password',
+            'role',
+            'status',
+            'unit',
+            'userId'
+        ]);
     }
 
     // macOS modal controls
@@ -151,6 +159,7 @@ class UserManagement extends Component
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
+            'unit' => $this->unit,
             'role_id' => $this->role,
             'status' => $this->status,
         ]);
@@ -165,6 +174,7 @@ class UserManagement extends Component
         $this->validate([
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users,email,' . $this->userId,
+            'unit' => 'required|string|max:255',
             'role' => 'required',
             'status' => 'required',
         ]);
@@ -173,6 +183,7 @@ class UserManagement extends Component
         $user->update([
             'name' => $this->name,
             'email' => $this->email,
+            'unit' => $this->unit,
             'role_id' => $this->role,
             'status' => $this->status,
             'password' => $this->password ? Hash::make($this->password) : $user->password,

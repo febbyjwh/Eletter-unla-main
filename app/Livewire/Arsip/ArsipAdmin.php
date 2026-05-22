@@ -7,6 +7,7 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Http\Controllers\GoogleController;
 use App\Models\Arsip;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Storage;
 
 class ArsipAdmin extends Component
@@ -141,6 +142,12 @@ class ArsipAdmin extends Component
         $this->dispatch('arsipUpdated');
     }
 
+    #[On('deleteConfirmed')]
+    public function handleDelete($id)
+    {
+        $this->delete($id);
+    }
+
     public function resetForm()
     {
         $this->reset([
@@ -156,6 +163,11 @@ class ArsipAdmin extends Component
         ]);
 
         $this->isEdit = false;
+    }
+
+    public function confirmDelete($id)
+    {
+        $this->dispatch('show-delete-confirmation', id: $id);
     }
 
     public function render()

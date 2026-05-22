@@ -19,6 +19,8 @@ dd(Gate::abilities());
 
     {{-- Tailwind CSS CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     {{-- Alpine.js (dibutuhkan untuk dropdown) --}}
     {{-- <script src="//unpkg.com/alpinejs" defer></script> --}}

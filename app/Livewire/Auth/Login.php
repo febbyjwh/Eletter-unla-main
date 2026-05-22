@@ -16,7 +16,7 @@ class Login extends Component
 
     public function mount()
     {
-        $this->roles = Role::whereIn('id', [2, 3, 4])->get();
+        $this->roles = Role::whereIn('id', [2, 3])->get();
     }
 
     // public function register()

@@ -1,3 +1,4 @@
+{{ $isModalOpen ? 'MODAL ON' : 'MODAL OFF' }}
 <div class="p-4 sm:p-6 bg-gray-100 min-h-screen">
 
     <h2 class="text-lg sm:text-xl font-bold mb-6 text-gray-800">
@@ -89,6 +90,7 @@
                             : '' !!}
                     </th>
 
+                    <th class="p-3 text-left">Unit</th>
                     <th class="p-3 text-left">Role</th>
                     <th class="p-3 text-left">Status</th>
                     <th class="p-3 text-left">Aksi</th>
@@ -114,6 +116,10 @@
                         {{-- Email --}}
                         <td class="p-3 hidden sm:table-cell">
                             {{ $user->email }}
+                        </td>
+
+                        <td class="p-3 hidden sm:table-cell">
+                            {{ $user->unit }}
                         </td>
 
                         {{-- Role --}}
