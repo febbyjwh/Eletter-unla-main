@@ -16,33 +16,30 @@ class Login extends Component
 
     public function mount()
     {
-        // role yang boleh register
-        $this->roles = Role::whereIn(
-            'id',
-            [2, 3, 4]
-        )->get();
+        $this->roles = Role::whereIn('id', [2, 3, 4])->get();
     }
+
+    // public function register()
+    // {
+    //     dd($this->role);
+    // }
 
     public function register()
     {
+        $roles   = Role::all();
+        return view("livewire.auth.register", compact('roles'))->layout('layouts.guest');
+    }
+
+    public function sumbitRegister()
+    {
         if (!$this->role) {
-
-            $this->addError(
-                'role',
-                'Silakan pilih role terlebih dahulu.'
-            );
-
+            $this->addError('role', 'Silakan pilih role terlebih dahulu.');
             return;
         }
 
-        session([
-            'selected_role' => $this->role
-        ]);
+        session(['selected_role' => $this->role]);
 
-        return redirect()->route(
-            'google.register',
-            ['role' => $this->role]
-        );
+        return redirect()->route('google.register');
     }
 
     public function login()

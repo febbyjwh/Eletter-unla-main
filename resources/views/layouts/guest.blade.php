@@ -8,6 +8,7 @@
     @livewireStyles
 </head>
 <body>
+    <p class="text-center text-2xl font-bold mt-5 mb-5">E-Letter UNLA</p>
     {{ $slot }}
     @livewireScripts
 </body>

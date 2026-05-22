@@ -54,19 +54,26 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit"
-                class="w-full bg-gradient-to-r from-blue-400 to-blue-500 text-white py-2.5 rounded-lg font-semibold text-sm hover:from-blue-500 hover:to-blue-600 transition-all duration-200">
-                Login
-            </button>
+            <div class="space-y-3">
 
-            <a href="{{ route('google.login') }}"
-                class="w-full inline-block px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-center text-sm font-semibold rounded-lg transition relative z-50">
-                Login dengan Google
-            </a>
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-blue-400 to-blue-500 text-white py-2.5 rounded-lg font-semibold text-sm hover:from-blue-500 hover:to-blue-600 transition-all duration-200">
+                    Login
+                </button>
 
+                <a href="{{ route('google.login') }}"
+                    class="w-full flex items-center justify-center gap-1 px-2 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-150">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M21.35 11.1h-9.18v2.9h5.28c-.23 1.4-1.8 4.1-5.28 4.1-3.18 0-5.8-2.64-5.8-5.9s2.62-5.9 5.8-5.9c1.82 0 3.04.78 3.74 1.45l2.56-2.48C16.96 3.88 14.84 3 12.17 3 6.92 3 2.7 7.2 2.7 12.35S6.92 21.7 12.17 21.7c5.36 0 9.13-3.75 9.13-9.02 0-.6-.07-1.1-.15-1.58z" />
+                    </svg>
+                    Login dengan Google
+                </a>
+            </div>
             <div class="text-gray-800 text-sm text-center">
-                Belom punya akun?   
-                <a class="font-medium text-blue-600 text-sm hover:underline" href="{{ route('auth.register') }}">Buat akun E-Letter</a>
+                Belum punya akun?
+                <a class="font-medium text-blue-600 text-sm hover:underline" href="{{ route('register') }}">Buat akun
+                    E-Letter</a>
             </div>
         </form>
 
