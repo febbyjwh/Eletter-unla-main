@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Auth;
 
-use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -10,37 +9,6 @@ class Login extends Component
 {
     public $email;
     public $password;
-    public $role;
-
-    public $roles = [];
-
-    public function mount()
-    {
-        $this->roles = Role::whereIn('id', [2, 3])->get();
-    }
-
-    // public function register()
-    // {
-    //     dd($this->role);
-    // }
-
-    public function register()
-    {
-        $roles   = Role::all();
-        return view("livewire.auth.register", compact('roles'))->layout('layouts.guest');
-    }
-
-    public function sumbitRegister()
-    {
-        if (!$this->role) {
-            $this->addError('role', 'Silakan pilih role terlebih dahulu.');
-            return;
-        }
-
-        session(['selected_role' => $this->role]);
-
-        return redirect()->route('google.register');
-    }
 
     public function login()
     {
@@ -51,6 +19,7 @@ class Login extends Component
 
             $user = Auth::user();
 
+            // cek status akun
             if ($user->status == 0) {
                 Auth::logout();
 
@@ -64,8 +33,7 @@ class Login extends Component
 
             session()->regenerate();
 
-            return redirect()
-                ->intended('/dashboard');
+            return redirect()->intended('/dashboard');
         }
 
         $this->addError(

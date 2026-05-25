@@ -30,7 +30,8 @@ Route::get('/register', Register::class)->name('register');
 
 Route::get('/auth/google/login',[GoogleController::class, 'redirectLogin'])->name('google.login');
 
-Route::get('/auth/google/register/{role}',[GoogleController::class, 'redirectRegister'])->name('google.register');
+// Route::get('/auth/google/register/{role}',[GoogleController::class, 'redirectRegister'])->name('google.register');
+Route::get('/auth/google/register',[GoogleController::class, 'redirectRegister'])->name('google.register');
 Route::get('/auth/google/callback',[GoogleController::class, 'callback'])->name('google.callback');
 
 Route::get('/forgot-password', ForgotPassword::class)->name('password.request');

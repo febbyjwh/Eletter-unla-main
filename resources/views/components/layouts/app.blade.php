@@ -148,7 +148,7 @@ dd(Gate::abilities());
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-50">
-                                        <i class="fi fi-sr-user-logout"></i> Logout </button>
+                                        <i class="fi fi-sr-sign-out-alt"></i> Logout </button>
                                 </form>
                             </li>
                         </ul>

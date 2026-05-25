@@ -29,7 +29,7 @@ class GoogleController extends Controller
 
     public function redirectLogin()
     {
-        Session::forget('selected_role');
+        // Session::forget('selected_role');
 
         return Socialite::driver('google')
             ->scopes([
@@ -45,10 +45,8 @@ class GoogleController extends Controller
             ->redirect();
     }
 
-    public function redirectRegister($role)
+    public function redirectRegister()
     {
-        session(['selected_role' => $role]);
-
         return Socialite::driver('google')
             ->scopes([
                 'openid',
@@ -58,7 +56,7 @@ class GoogleController extends Controller
             ])
             ->with([
                 'access_type' => 'offline',
-                'prompt'      => 'consent',
+                'prompt' => 'consent',
             ])
             ->redirect();
     }
@@ -90,81 +88,92 @@ class GoogleController extends Controller
         try {
             $socialUser = Socialite::driver('google')->user();
         } catch (\Exception $e) {
-            return redirect('/')->with('error', 'Autentikasi Google gagal. Silakan coba lagi.');
+            return redirect('/')
+                ->with('error', 'Autentikasi Google gagal. Silakan coba lagi.');
         }
 
         $user = User::where('email', $socialUser->email)->first();
-        $role = session('selected_role');
-
-        // $tokenData = [
-        //     'google_access_token'     => json_encode($socialUser->token),
-        //     'google_refresh_token'    => $socialUser->refreshToken,
-        //     'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
-        // ];
 
         $updateData = [
             'google_access_token'     => json_encode($socialUser->token),
-            'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
+            'google_token_expires_at' => now()->addSeconds(
+                $socialUser->expiresIn ?? 3600
+            ),
         ];
 
         if (!empty($socialUser->refreshToken)) {
-            $updateData['google_refresh_token'] = $socialUser->refreshToken;
+            $updateData['google_refresh_token'] =
+                $socialUser->refreshToken;
         }
 
-         $tokenData = $updateData;
+        $tokenData = $updateData;
 
-        // dari register
-        if ($role) {
-            if ($user) {
-                session()->forget('selected_role');
+        if (!$user) {
 
-                if ($user->status == 1) {
-                    return redirect('/')->with('error', 'Akun dengan email ini sudah terdaftar dan terverifikasi. Silakan login.');
-                }
+            // buat folder drive
+            $folderId = $this->createDriveFolder(
+                json_decode(
+                    $tokenData['google_access_token'],
+                    true
+                )
+            );
 
-                return redirect('/')->with('error', 'Akun Anda sudah terdaftar namun belum diverifikasi admin. Silakan tunggu konfirmasi.');
-            }
+            $user = User::create([
+                'name'                   => $socialUser->name,
+                'email'                  => $socialUser->email,
+                'password'               => bcrypt(str()->random(16)),
 
-            // buat folder drive untuk user baru
-            $folderId = $this->createDriveFolder(json_decode($tokenData['google_access_token'], true));
+                // default USER
+                'role_id'                => 2,
 
-            User::create([
-                'name'                    => $socialUser->name,
-                'email'                   => $socialUser->email,
-                'role_id'                 => $role,
-                'status'                  => 0,
-                'password'                => bcrypt(str()->random(16)),
-                'google_drive_folder_id'  => $folderId,
+                // pending approval admin
+                'status'                 => 0,
+
+                'google_drive_folder_id' => $folderId,
+
                 ...$tokenData,
             ]);
 
-            session()->forget('selected_role');
-
-            return redirect('/')->with('success', 'Registrasi berhasil. Menunggu verifikasi admin.');
+            return redirect('/')
+                ->with(
+                    'success',
+                    'Registrasi berhasil. Menunggu verifikasi admin.'
+                );
         }
 
-        // dari login
-        if (!$user) {
-            return redirect('/register')->with('error', 'Akun tidak ditemukan. Silakan daftar terlebih dahulu.');
-        }
-
+        // belum diverifikasi
         if ($user->status != 1) {
-            return redirect('/')->with('error', 'Akun Anda sudah terdaftar admin. Silakan tunggu konfirmasi.');
+            return redirect('/')
+                ->with(
+                    'error',
+                    'Akun Anda belum diverifikasi admin.'
+                );
         }
 
-        // kalau belum punya folder drive, buatkan sekarang
+        // kalau belum punya folder drive
         $folderId = $user->google_drive_folder_id;
+
         if (!$folderId) {
-            $folderId = $this->createDriveFolder(json_decode($tokenData['google_access_token'], true));
+            $folderId = $this->createDriveFolder(
+                json_decode(
+                    $tokenData['google_access_token'],
+                    true
+                )
+            );
         }
 
         $user->update([
             ...$tokenData,
-            'google_refresh_token'   => $socialUser->refreshToken ?? $user->google_refresh_token,
+
+            'google_refresh_token' =>
+            $socialUser->refreshToken
+                ?? $user->google_refresh_token,
+
             'google_drive_folder_id' => $folderId,
         ]);
 
         Auth::login($user);
+
         return redirect('/dashboard');
     }
 
