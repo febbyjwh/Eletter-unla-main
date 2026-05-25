@@ -12,6 +12,39 @@ use Google_Service_Drive;
 
 class GoogleController extends Controller
 {
+    private static function makeGoogleToken($accessToken, $expiresIn = null): array
+    {
+        $token = [
+            'access_token' => $accessToken,
+        ];
+
+        if ($expiresIn) {
+            $token['expires_in'] = $expiresIn;
+            $token['created'] = time();
+        }
+
+        return $token;
+    }
+
+    private static function decodeGoogleToken($storedToken): array
+    {
+        $token = json_decode($storedToken, true);
+
+        if (is_string($token)) {
+            return self::makeGoogleToken($token);
+        }
+
+        if (is_array($token) && isset($token['access_token'])) {
+            return $token;
+        }
+
+        if (is_string($storedToken) && $storedToken !== '') {
+            return self::makeGoogleToken($storedToken);
+        }
+
+        throw new \Exception('Format token Google tidak valid. Silakan login ulang dengan Google.');
+    }
+
     public function redirect()
     {
         return Socialite::driver('google')
@@ -94,11 +127,14 @@ class GoogleController extends Controller
 
         $user = User::where('email', $socialUser->email)->first();
 
+        $googleToken = self::makeGoogleToken(
+            $socialUser->token,
+            $socialUser->expiresIn ?? 3600
+        );
+
         $updateData = [
-            'google_access_token'     => json_encode($socialUser->token),
-            'google_token_expires_at' => now()->addSeconds(
-                $socialUser->expiresIn ?? 3600
-            ),
+            'google_access_token'     => json_encode($googleToken),
+            'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
         ];
 
         if (!empty($socialUser->refreshToken)) {
@@ -112,25 +148,14 @@ class GoogleController extends Controller
 
             // buat folder drive
             $folderId = $this->createDriveFolder(
-                json_decode(
-                    $tokenData['google_access_token'],
-                    true
-                )
+                self::decodeGoogleToken($tokenData['google_access_token'])
             );
 
             $user = User::create([
                 'name'                   => $socialUser->name,
                 'email'                  => $socialUser->email,
                 'password'               => bcrypt(str()->random(16)),
-
-                // default USER
-                'role_id'                => 2,
-
-                // pending approval admin
-                'status'                 => 0,
-
                 'google_drive_folder_id' => $folderId,
-
                 ...$tokenData,
             ]);
 
@@ -154,12 +179,7 @@ class GoogleController extends Controller
         $folderId = $user->google_drive_folder_id;
 
         if (!$folderId) {
-            $folderId = $this->createDriveFolder(
-                json_decode(
-                    $tokenData['google_access_token'],
-                    true
-                )
-            );
+            $folderId = $this->createDriveFolder(self::decodeGoogleToken($tokenData['google_access_token']));
         }
 
         $user->update([
@@ -213,11 +233,15 @@ class GoogleController extends Controller
         $client->setClientId(config('services.google.client_id'));
         $client->setClientSecret(config('services.google.client_secret'));
 
-        $token = json_decode($user->google_access_token, true);
+        $token = self::decodeGoogleToken($user->google_access_token);
         $client->setAccessToken($token);
 
         $service  = new Google_Service_Drive($client);
         $folderId = $user->google_drive_folder_id;
+
+        if (!$folderId) {
+            throw new \Exception('Folder Google Drive tidak ditemukan. Silakan login ulang dengan Google.');
+        }
 
         $fileMetadata = new \Google_Service_Drive_DriveFile([
             'name'    => $uploadedFile->getClientOriginalName(),
