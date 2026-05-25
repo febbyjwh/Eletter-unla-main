@@ -112,7 +112,7 @@
                             </button>
                             <button wire:click="delete({{ $user->id }})"
                                 class="px-3 py-1 rounded-xl text-xs bg-red-500 text-white shadow hover:bg-red-600"
-                                onclick="return confirm('Yakin hapus user ini?')">
+                                wire:confirm="Yakin hapus user ini?">
                                 🗑️ Hapus
                             </button>
                         </td>
@@ -251,4 +251,5 @@
                                 </div>
                     @endif
 
-                    </div>)
+                    </div>
+)
