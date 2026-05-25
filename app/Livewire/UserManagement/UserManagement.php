@@ -20,6 +20,7 @@ class UserManagement extends Component
     // Modal states (macOS style)
     public $isMinimized = false;
     public $isFullscreen = false;
+    public $selectedRole = [];
 
     // Table controls
     public $search = '';
@@ -37,9 +38,18 @@ class UserManagement extends Component
     ];
 
     // Reset pagination when search/filter/perPage updated
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingFilterRole() { $this->resetPage(); }
-    public function updatingPerPage() { $this->resetPage(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterRole()
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
 
     public function render()
     {
@@ -47,10 +57,10 @@ class UserManagement extends Component
 
         // Search by name/email/unit
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('name', 'like', '%'.$this->search.'%')
-                  ->orWhere('email', 'like', '%'.$this->search.'%')
-                  ->orWhere('unit', 'like', '%'.$this->search.'%');
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                    ->orWhere('unit', 'like', '%' . $this->search . '%');
             });
         }
 
@@ -64,7 +74,7 @@ class UserManagement extends Component
         $sortField = in_array($this->sortField, $allowedSort) ? $this->sortField : 'name';
 
         $users = $query->orderBy($sortField, $this->sortDirection)
-                       ->paginate($this->perPage);
+            ->paginate($this->perPage);
 
         return view('livewire.user-management.user-management', [
             'users' => $users,
@@ -154,6 +164,7 @@ class UserManagement extends Component
             'unit' => $this->unit,
             'password' => Hash::make($this->password),
             'role_id' => $this->role,
+            'status' => 0, // pending
         ]);
 
         session()->flash('success', 'User berhasil ditambahkan!');
@@ -188,5 +199,24 @@ class UserManagement extends Component
     {
         User::findOrFail($id)->delete();
         session()->flash('success', 'User berhasil dihapus!');
+    }
+
+    public function approve($id)
+    {
+        if (!isset($this->selectedRole[$id]) || empty($this->selectedRole[$id])) {
+            session()->flash('error', 'Pilih role terlebih dahulu.');
+            return;
+        }
+
+        $user = User::findOrFail($id);
+
+        $user->update([
+            'role_id' => $this->selectedRole[$id],
+            'status' => 1,
+        ]);
+
+        unset($this->selectedRole[$id]);
+
+        session()->flash('success', 'User berhasil diverifikasi!');
     }
 }
