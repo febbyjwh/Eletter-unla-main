@@ -54,7 +54,7 @@ class ArsipAdmin extends Component
             'penerima' => 'required',
             'perihal' => 'required',
             'tanggal' => 'required|date',
-            'new_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'new_file' => ($this->isEdit ? 'nullable' : 'required') . '|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
         // default pakai file lama
@@ -63,13 +63,23 @@ class ArsipAdmin extends Component
         // upload file baru
         if ($this->new_file) {
 
-            $googleController = new GoogleController();
+            try {
+                $googleController = new GoogleController();
 
-            $upload = $googleController->uploadFileToDrive(
-                $this->new_file
-            );
+                $upload = $googleController->uploadFileToDrive(
+                    $this->new_file
+                );
 
-            $filePath = $upload['url'];
+                $filePath = $upload['url'] ?? null;
+            } catch (\Exception $e) {
+                $this->addError('new_file', $e->getMessage());
+                return;
+            }
+        }
+
+        if (!$filePath) {
+            $this->addError('new_file', 'File arsip wajib diupload.');
+            return;
         }
 
         $data = [

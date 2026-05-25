@@ -309,6 +309,10 @@
                                file:text-blue-600
                                hover:file:bg-blue-200">
 
+                            @error('new_file')
+                                <p class="mt-3 text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+
                             <!-- Loading -->
                             <div wire:loading wire:target="new_file"
                                 class="mt-3 flex items-center justify-center gap-2 text-sm text-blue-500">
