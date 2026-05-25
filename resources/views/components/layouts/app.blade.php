@@ -126,29 +126,29 @@ dd(Gate::abilities());
 
                         <ul class="text-sm text-gray-700">
                             <li>
-                                <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-50">⚙️
-                                    Pengaturan</a>
+                                <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
+                                    <i class="fi fi-sr-settings"></i> Pengaturan</a>
                             </li>
 
                             {{-- Menu dinamis berdasarkan role --}}
                             
                             @if (optional(Auth::user()->role)->name === 'Admin')
                                 <li>
-                                    <a href="{{ route('arsip.admin') }}" class="block px-4 py-2 hover:bg-gray-50">📂
-                                        Arsip Semua Surat</a>
+                                    <a href="{{ route('arsip.admin') }}" class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
+                                        <i class="fi fi-sr-folder-open"></i> Arsip Semua Surat</a>
                                 </li>
                             @else
                                 <li>
-                                    <a href="{{ route('arsip.user') }}" class="block px-4 py-2 hover:bg-gray-50">📁
-                                        Arsip Saya</a>
+                                    <a href="{{ route('arsip.user') }}" class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
+                                        <i class="fi fi-sr-folder-open"></i> Arsip Saya</a>
                                 </li>
                             @endif
 
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-50">🚪
-                                        Logout</button>
+                                    <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-50">
+                                        <i class="fi fi-sr-user-logout"></i> Logout </button>
                                 </form>
                             </li>
                         </ul>

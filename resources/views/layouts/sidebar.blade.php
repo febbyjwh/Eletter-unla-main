@@ -49,7 +49,7 @@
                 </li>
             @endif
 
-            @if (auth()->user()->hasPermission('manage_templates'))
+            {{-- @if (auth()->user()->hasPermission('manage_templates'))
                 <li>
                     <a href="{{ route('template-surat.index') }}"
                         class="flex items-center gap-3 px-2 py-1 rounded-md 
@@ -57,11 +57,11 @@
                         <i class="fi fi-rr-template"></i> <span>Template Surat</span>
                     </a>
                 </li>
-            @endif
+            @endif --}}
 
             {{-- 🔽 Hapus menu disposisi karena sudah jadi sub-modul surat masuk --}}
 
-            @if (auth()->user()->hasPermission('view_reports'))
+            {{-- @if (auth()->user()->hasPermission('view_reports'))
                 <li>
                     <a href="/laporan"
                         class="flex items-center gap-3 px-2 py-1 rounded-md 
@@ -69,7 +69,7 @@
                         <i class="fi fi-rr-newspaper"></i> <span>Laporan</span>
                     </a>
                 </li>
-            @endif
+            @endif --}}
 
             {{-- 🔽 Menu Manajemen User --}}
             @if (auth()->user()->hasPermission('manage_users') || auth()->user()->hasPermission('manage_roles'))
@@ -96,7 +96,7 @@
                         x-transition:leave="transition ease-in duration-200"
                         x-transition:leave-start="opacity-100 transform translate-y-0"
                         x-transition:leave-end="opacity-0 transform -translate-y-2" class="mt-2 ml-6 space-y-2 text-sm">
-                        @if (auth()->user()->hasPermission('manage_roles'))
+                        {{-- @if (auth()->user()->hasPermission('manage_roles'))
                             <li>
                                 <a href="{{ route('manajemen-role') }}"
                                     class="flex items-center gap-2 px-2 py-1 rounded-md 
@@ -104,7 +104,7 @@
                                     <i class="fi fi-rr-dice-d20"></i> <span>Role</span>
                                 </a>
                             </li>
-                        @endif
+                        @endif --}}
                         @if (auth()->user()->hasPermission('manage_users'))
                             <li>
                                 <a href="{{ route('manajemen-user') }}"

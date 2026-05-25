@@ -1,5 +1,5 @@
 <div class="p-6 bg-white rounded-xl shadow">
-    <h2 class="text-xl font-bold mb-4">📁 Arsip Saya</h2>
+    <h2 class="text-xl font-bold mb-4">Arsip Saya</h2>
 
     <h3 class="font-semibold mb-2">Surat Masuk</h3>
     <ul class="mb-4">
