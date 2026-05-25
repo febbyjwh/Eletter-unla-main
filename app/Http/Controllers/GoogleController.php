@@ -29,7 +29,7 @@ class GoogleController extends Controller
 
     public function redirectLogin()
     {
-        // Session::forget('selected_role');
+        session(['auth_type' => 'login']);
 
         return Socialite::driver('google')
             ->scopes([
@@ -40,13 +40,14 @@ class GoogleController extends Controller
             ])
             ->with([
                 'access_type' => 'offline',
-                // 'prompt'      => 'consent',
             ])
             ->redirect();
     }
 
     public function redirectRegister()
     {
+        session(['auth_type' => 'register']);
+
         return Socialite::driver('google')
             ->scopes([
                 'openid',
@@ -92,25 +93,33 @@ class GoogleController extends Controller
                 ->with('error', 'Autentikasi Google gagal. Silakan coba lagi.');
         }
 
+        $authType = session('auth_type');
         $user = User::where('email', $socialUser->email)->first();
 
-        $updateData = [
-            'google_access_token'     => json_encode($socialUser->token),
+        $tokenData = [
+            'google_access_token' => json_encode($socialUser->token),
             'google_token_expires_at' => now()->addSeconds(
                 $socialUser->expiresIn ?? 3600
             ),
         ];
 
         if (!empty($socialUser->refreshToken)) {
-            $updateData['google_refresh_token'] =
+            $tokenData['google_refresh_token'] =
                 $socialUser->refreshToken;
         }
 
-        $tokenData = $updateData;
+        if ($authType === 'register') {
 
-        if (!$user) {
+            if ($user) {
+                session()->forget('auth_type');
 
-            // buat folder drive
+                return redirect('/')
+                    ->with(
+                        'error',
+                        'Akun sudah terdaftar. Silakan login.'
+                    );
+            }
+
             $folderId = $this->createDriveFolder(
                 json_decode(
                     $tokenData['google_access_token'],
@@ -118,21 +127,23 @@ class GoogleController extends Controller
                 )
             );
 
-            $user = User::create([
-                'name'                   => $socialUser->name,
-                'email'                  => $socialUser->email,
-                'password'               => bcrypt(str()->random(16)),
+            User::create([
+                'name' => $socialUser->name,
+                'email' => $socialUser->email,
+                'password' => bcrypt(str()->random(16)),
 
-                // default USER
-                'role_id'                => 2,
+                // default role USER
+                'role_id' => 2,
 
-                // pending approval admin
-                'status'                 => 0,
+                // menunggu approval
+                'status' => 0,
 
                 'google_drive_folder_id' => $folderId,
 
                 ...$tokenData,
             ]);
+
+            session()->forget('auth_type');
 
             return redirect('/')
                 ->with(
@@ -141,8 +152,19 @@ class GoogleController extends Controller
                 );
         }
 
-        // belum diverifikasi
+        if (!$user) {
+            session()->forget('auth_type');
+
+            return redirect('/register')
+                ->with(
+                    'error',
+                    'Akun tidak ditemukan. Silakan daftar terlebih dahulu.'
+                );
+        }
+
         if ($user->status != 1) {
+            session()->forget('auth_type');
+
             return redirect('/')
                 ->with(
                     'error',
@@ -150,7 +172,7 @@ class GoogleController extends Controller
                 );
         }
 
-        // kalau belum punya folder drive
+        // kalau folder drive belum ada
         $folderId = $user->google_drive_folder_id;
 
         if (!$folderId) {
@@ -171,6 +193,8 @@ class GoogleController extends Controller
 
             'google_drive_folder_id' => $folderId,
         ]);
+
+        session()->forget('auth_type');
 
         Auth::login($user);
 

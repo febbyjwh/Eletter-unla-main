@@ -75,7 +75,7 @@
             @if (auth()->user()->hasPermission('manage_users') || auth()->user()->hasPermission('manage_roles'))
                 <li>
                     <p class="px-2 mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase">
-                        Manajement User
+                        Manajemen User
                     </p>
                     <button @click="openUser = !openUser"
                         class="flex items-center justify-between w-full 
