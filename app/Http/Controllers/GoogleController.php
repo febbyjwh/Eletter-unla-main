@@ -129,14 +129,11 @@ class GoogleController extends Controller
         $authType = session('auth_type');
         $user = User::where('email', $socialUser->email)->first();
 
-        $googleToken = self::makeGoogleToken(
-            $socialUser->token,
-            $socialUser->expiresIn ?? 3600
-        );
-
         $tokenData = [
-            'google_access_token' => json_encode($googleToken),
-            'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
+            'google_access_token' => json_encode($socialUser->token),
+            'google_token_expires_at' => now()->addSeconds(
+                $socialUser->expiresIn ?? 3600
+            ),
         ];
 
         if (!empty($socialUser->refreshToken)) {
@@ -157,21 +154,25 @@ class GoogleController extends Controller
             }
 
             $folderId = $this->createDriveFolder(
-                self::decodeGoogleToken($tokenData['google_access_token'])
+                json_decode(
+                    $tokenData['google_access_token'],
+                    true
+                )
             );
 
-            $user = User::create([
-                'name'                   => $socialUser->name,
-                'email'                  => $socialUser->email,
-                'password'               => bcrypt(str()->random(16)),
+            User::create([
+                'name' => $socialUser->name,
+                'email' => $socialUser->email,
+                'password' => bcrypt(str()->random(16)),
 
-                // default USER
-                'role_id'                => 2,
+                // default role USER
+                'role_id' => 2,
 
-                // pending approval admin
-                'status'                 => 0,
+                // menunggu approval
+                'status' => 0,
 
                 'google_drive_folder_id' => $folderId,
+
                 ...$tokenData,
             ]);
 
@@ -208,7 +209,12 @@ class GoogleController extends Controller
         $folderId = $user->google_drive_folder_id;
 
         if (!$folderId) {
-            $folderId = $this->createDriveFolder(self::decodeGoogleToken($tokenData['google_access_token']));
+            $folderId = $this->createDriveFolder(
+                json_decode(
+                    $tokenData['google_access_token'],
+                    true
+                )
+            );
         }
 
         $user->update([
