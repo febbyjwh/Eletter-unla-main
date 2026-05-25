@@ -13,10 +13,9 @@ class UserManagement extends Component
     use WithPagination;
 
     // Form fields
-    public $name, $email, $password, $unit, $role, $status, $userId;
-    public $selectedRole = [];
+    public $name, $email, $unit, $password, $role, $userId;
     public $isEdit = false;
-    // public $showModal = false;
+    public $showModal = false;
 
     // Modal states (macOS style)
     public $isMinimized = false;
@@ -28,40 +27,30 @@ class UserManagement extends Component
     public $perPage = 10;
     public $sortField = 'name';
     public $sortDirection = 'asc';
-    public $isModalOpen = false;
 
     protected $rules = [
         'name' => 'required|min:3',
         'email' => 'required|email|unique:users,email',
+        'unit' => 'nullable|string|max:150',
         'password' => 'required|min:6',
-        'unit' => 'nullable|string|max:255',
-        'role' => 'required',
-        'status' => 'required'
+        'role' => 'required'
     ];
 
     // Reset pagination when search/filter/perPage updated
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-    public function updatingFilterRole()
-    {
-        $this->resetPage();
-    }
-    public function updatingPerPage()
-    {
-        $this->resetPage();
-    }
+    public function updatingSearch() { $this->resetPage(); }
+    public function updatingFilterRole() { $this->resetPage(); }
+    public function updatingPerPage() { $this->resetPage(); }
 
     public function render()
     {
         $query = User::with('role');
 
-        // Search by name/email
+        // Search by name/email/unit
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%');
+            $query->where(function($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                  ->orWhere('email', 'like', '%'.$this->search.'%')
+                  ->orWhere('unit', 'like', '%'.$this->search.'%');
             });
         }
 
@@ -71,11 +60,11 @@ class UserManagement extends Component
         }
 
         // Allowed sort fields
-        $allowedSort = ['name', 'email', 'created_at'];
+        $allowedSort = ['name', 'email', 'unit', 'created_at'];
         $sortField = in_array($this->sortField, $allowedSort) ? $this->sortField : 'name';
 
         $users = $query->orderBy($sortField, $this->sortDirection)
-            ->paginate($this->perPage);
+                       ->paginate($this->perPage);
 
         return view('livewire.user-management.user-management', [
             'users' => $users,
@@ -96,43 +85,47 @@ class UserManagement extends Component
 
     public function openModal($edit = false, $id = null)
     {
-        $this->resetValidation();
-
+        $this->resetForm();
         $this->isEdit = $edit;
-        $this->isModalOpen = true;
+        $this->isMinimized = false;
+        $this->isFullscreen = false;
 
         if ($edit && $id) {
             $user = User::findOrFail($id);
-
-            $this->fill([
-                'userId' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role_id,
-                'status' => $user->status,
-                'unit' => $user->unit,
-            ]);
-        } else {
-            $this->resetForm();
+            $this->userId = $user->id;
+            $this->name = $user->name;
+            $this->email = $user->email;
+            $this->unit = $user->unit;
+            $this->role = $user->role_id;
         }
+
+        $this->showModal = true;
+    }
+
+    public function createUser()
+    {
+        $this->openModal(false);
+    }
+
+    public function editUser($id)
+    {
+        $this->openModal(true, $id);
     }
 
     public function closeModal()
     {
-        $this->isModalOpen = false;
+        $this->showModal = false;
     }
 
     public function resetForm()
     {
-        $this->reset([
-            'name',
-            'email',
-            'password',
-            'role',
-            'status',
-            'unit',
-            'userId'
-        ]);
+        $this->name = '';
+        $this->email = '';
+        $this->unit = '';
+        $this->password = '';
+        $this->role = '';
+        $this->userId = null;
+        $this->isEdit = false;
     }
 
     // macOS modal controls
@@ -158,10 +151,9 @@ class UserManagement extends Component
         User::create([
             'name' => $this->name,
             'email' => $this->email,
-            'password' => Hash::make($this->password),
             'unit' => $this->unit,
+            'password' => Hash::make($this->password),
             'role_id' => $this->role,
-            'status' => $this->status,
         ]);
 
         session()->flash('success', 'User berhasil ditambahkan!');
@@ -174,9 +166,8 @@ class UserManagement extends Component
         $this->validate([
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users,email,' . $this->userId,
-            'unit' => 'required|string|max:255',
+            'unit' => 'nullable|string|max:150',
             'role' => 'required',
-            'status' => 'required',
         ]);
 
         $user = User::findOrFail($this->userId);
@@ -185,7 +176,6 @@ class UserManagement extends Component
             'email' => $this->email,
             'unit' => $this->unit,
             'role_id' => $this->role,
-            'status' => $this->status,
             'password' => $this->password ? Hash::make($this->password) : $user->password,
         ]);
 
@@ -198,24 +188,5 @@ class UserManagement extends Component
     {
         User::findOrFail($id)->delete();
         session()->flash('success', 'User berhasil dihapus!');
-    }
-
-    public function approve($id)
-    {
-        if (empty($this->selectedRole[$id])) {
-            session()->flash('error', 'Pilih role terlebih dahulu.');
-            return;
-        }
-
-        $user = User::findOrFail($id);
-
-        $user->update([
-            'role_id' => $this->selectedRole[$id],
-            'status' => 1,
-        ]);
-
-        unset($this->selectedRole[$id]);
-
-        session()->flash('success', 'User berhasil diverifikasi!');
     }
 }
