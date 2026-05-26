@@ -11,35 +11,51 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         DB::table('users')->insert([
+            // ADMIN
             [
                 'name' => 'Admin',
                 'email' => 'admin@eletter.com',
                 'password' => Hash::make('password'),
-                'role_id' => '1',
+                'role_id' => 1,
+                'status' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // USERS
+            [
+                'name' => 'Budi Santoso',
+                'email' => 'budi@eletter.com',
+                'password' => Hash::make('password'),
+                'role_id' => 2,
+                'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Staff',
-                'email' => 'staff@eletter.com',
+                'name' => 'Siti Nurhaliza',
+                'email' => 'siti@eletter.com',
                 'password' => Hash::make('password'),
-                'role_id' => '2',
+                'role_id' => 2,
+                'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Dosen',
-                'email' => 'dosen@eletter.com',
+                'name' => 'Andi Pratama',
+                'email' => 'andi@eletter.com',
                 'password' => Hash::make('password'),
-                'role_id' => '3',
+                'role_id' => 2,
+                'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Mahasiswa',
-                'email' => 'mahasiswa@eletter.com',
+                'name' => 'Dewi Lestari',
+                'email' => 'dewi@eletter.com',
                 'password' => Hash::make('password'),
-                'role_id' => '4',
+                'role_id' => 2,
+                'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

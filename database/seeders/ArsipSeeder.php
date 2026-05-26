@@ -11,39 +11,56 @@ class ArsipSeeder extends Seeder
     public function run(): void
     {
         DB::table('arsip')->insert([
-            // =========================
-            // SURAT MASUK
-            // =========================
+
             [
-                'user_id' => 1,
+                'user_id' => 2,
                 'jenis_surat' => 'masuk',
-                'no_surat' => 'SM-001/2026',
-                'pengirim' => 'Kementerian Pendidikan',
-                'penerima' => 'Universitas ABC',
-                'perihal' => 'Undangan Seminar Nasional',
+                'no_surat' => 'SM-001/USR/2026',
+                'pengirim' => 'Rektorat UNLA',
+                'penerima' => 'Budi Santoso',
+                'perihal' => 'Undangan Rapat Akademik',
                 'tanggal' => Carbon::now()->subDays(10),
                 'file_surat' => null,
 
-                'created_by' => 1,
-                'updated_by' => 1,
-                'created_role_id' => 1,
-                'updated_role_id' => 1,
+                'created_by' => 2,
+                'updated_by' => 2,
+                'created_role_id' => 2,
+                'updated_role_id' => 2,
 
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'user_id' => 2,
-                'jenis_surat' => 'masuk',
-                'no_surat' => 'SM-002/2026',
-                'pengirim' => 'Dinas Pendidikan',
-                'penerima' => 'Universitas ABC',
-                'perihal' => 'Permintaan Data Mahasiswa',
+                'jenis_surat' => 'keluar',
+                'no_surat' => 'SK-001/USR/2026',
+                'pengirim' => 'Budi Santoso',
+                'penerima' => 'Rektorat UNLA',
+                'perihal' => 'Konfirmasi Kehadiran',
                 'tanggal' => Carbon::now()->subDays(7),
                 'file_surat' => null,
 
                 'created_by' => 2,
                 'updated_by' => 2,
+                'created_role_id' => 2,
+                'updated_role_id' => 2,
+
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            [
+                'user_id' => 3,
+                'jenis_surat' => 'masuk',
+                'no_surat' => 'SM-002/USR/2026',
+                'pengirim' => 'BAAK',
+                'penerima' => 'Siti Nurhaliza',
+                'perihal' => 'Informasi Registrasi',
+                'tanggal' => Carbon::now()->subDays(6),
+                'file_surat' => null,
+
+                'created_by' => 1,
+                'updated_by' => 1,
                 'created_role_id' => 1,
                 'updated_role_id' => 1,
 
@@ -51,17 +68,14 @@ class ArsipSeeder extends Seeder
                 'updated_at' => now(),
             ],
 
-            // =========================
-            // SURAT KELUAR
-            // =========================
             [
-                'user_id' => 1,
-                'jenis_surat' => 'keluar',
-                'no_surat' => 'SK-001/2026',
-                'pengirim' => 'Universitas ABC',
-                'penerima' => 'Kementerian Pendidikan',
-                'perihal' => 'Balasan Undangan Seminar',
-                'tanggal' => Carbon::now()->subDays(5),
+                'user_id' => 4,
+                'jenis_surat' => 'masuk',
+                'no_surat' => 'SM-003/USR/2026',
+                'pengirim' => 'Fakultas Teknik',
+                'penerima' => 'Andi Pratama',
+                'perihal' => 'Jadwal Seminar Proposal',
+                'tanggal' => Carbon::now()->subDays(4),
                 'file_surat' => null,
 
                 'created_by' => 1,
@@ -73,17 +87,36 @@ class ArsipSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'user_id' => 3,
+                'user_id' => 4,
                 'jenis_surat' => 'keluar',
-                'no_surat' => 'SK-002/2026',
-                'pengirim' => 'Universitas ABC',
-                'penerima' => 'Dinas Pendidikan',
-                'perihal' => 'Pengiriman Data Akademik',
+                'no_surat' => 'SK-002/USR/2026',
+                'pengirim' => 'Andi Pratama',
+                'penerima' => 'Fakultas Teknik',
+                'perihal' => 'Pengajuan Revisi Proposal',
                 'tanggal' => Carbon::now()->subDays(2),
                 'file_surat' => null,
 
-                'created_by' => 3,
-                'updated_by' => 3,
+                'created_by' => 4,
+                'updated_by' => 4,
+                'created_role_id' => 2,
+                'updated_role_id' => 2,
+
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            [
+                'user_id' => 5,
+                'jenis_surat' => 'masuk',
+                'no_surat' => 'SM-004/USR/2026',
+                'pengirim' => 'Kemahasiswaan',
+                'penerima' => 'Dewi Lestari',
+                'perihal' => 'Informasi Beasiswa',
+                'tanggal' => Carbon::now()->subDay(),
+                'file_surat' => null,
+
+                'created_by' => 1,
+                'updated_by' => 1,
                 'created_role_id' => 1,
                 'updated_role_id' => 1,
 

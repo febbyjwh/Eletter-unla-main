@@ -94,7 +94,9 @@ class ArsipAdmin extends Component
 
         if ($this->isEdit) {
             // dd($this->new_file);
-            Arsip::find($this->arsipId)->update($data);
+            $this->arsipQuery()
+                ->findOrFail($this->arsipId)
+                ->update($data);
 
             session()->flash('message', 'Arsip berhasil diupdate');
         } else {
@@ -117,7 +119,7 @@ class ArsipAdmin extends Component
 
     public function edit($id)
     {
-        $arsip = Arsip::findOrFail($id);
+        $arsip = $this->arsipQuery()->findOrFail($id);
 
         $this->arsipId = $arsip->id;
         $this->jenis_surat = $arsip->jenis_surat;
@@ -137,7 +139,7 @@ class ArsipAdmin extends Component
 
     public function delete($id)
     {
-        $arsip = Arsip::findOrFail($id);
+        $arsip = $this->arsipQuery()->findOrFail($id);
 
         // hapus file kalau ada
         if ($arsip->file_surat && Storage::disk('public')->exists($arsip->file_surat)) {
@@ -180,9 +182,21 @@ class ArsipAdmin extends Component
         $this->dispatch('show-delete-confirmation', id: $id);
     }
 
+    protected function arsipQuery()
+    {
+        $query = Arsip::query();
+
+        if (auth()->user()->role_id != 1) {
+            $query->where('user_id', auth()->id());
+        }
+
+        return $query;
+    }
+
     public function render()
     {
-        $arsip = Arsip::query()
+        // dd(auth()->id(), auth()->user()->role_id);
+        $arsip = $this->arsipQuery()
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('no_surat', 'like', "%{$this->search}%")
