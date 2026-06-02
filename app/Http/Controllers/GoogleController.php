@@ -294,6 +294,16 @@ class GoogleController extends Controller
             'fields'     => 'id',
         ]);
 
+        $permission = new \Google_Service_Drive_Permission([
+            'type' => 'anyone',
+            'role' => 'reader',
+        ]);
+
+        $service->permissions->create(
+            $file->id,
+            $permission
+        );
+
         return [
             'file_id' => $file->id,
             'url'     => 'https://drive.google.com/file/d/' . $file->id . '/view',

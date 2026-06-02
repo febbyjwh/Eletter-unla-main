@@ -382,8 +382,7 @@
             <h2 class="register-title">Mulai Kelola Surat Digital</h2>
 
             <p class="register-copy">
-                Daftar dan nikmati kemudahan pengelolaan surat masuk, surat keluar,
-                serta disposisi secara digital di Universitas Langlangbuana.
+                Daftar dan nikmati kemudahan pengelolaan surat masuk, surat keluar secara digital di Universitas Langlangbuana.
             </p>
 
             <div class="register-features">
