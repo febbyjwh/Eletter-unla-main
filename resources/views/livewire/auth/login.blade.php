@@ -416,7 +416,7 @@
                     <span>Monitoring surat masuk dan keluar</span>
                 </div>
 
-                <div class="login-feature-item">
+                {{-- <div class="login-feature-item">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="9" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12l2.5 2.5L16 9" />
@@ -430,7 +430,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12l2.5 2.5L16 9" />
                     </svg>
                     <span>Dashboard persuratan real-time</span>
-                </div>
+                </div> --}}
             </div>
 
             <small class="login-help">
