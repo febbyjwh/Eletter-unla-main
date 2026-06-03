@@ -14,6 +14,7 @@ use App\Http\Controllers\GoogleController;
 use App\Livewire\Profile\Profile;
 use App\Livewire\UserManagement\UserManagement;
 use App\Livewire\RoleManagement\RoleManagement;
+use App\Livewire\UnitManagement\UnitManagement;
 use App\Livewire\SuratMasuk\SuratMasukManagement;
 use App\Livewire\SuratKeluar\SuratKeluarManagement;
 use App\Livewire\Disposisi\DisposisiManagement;
@@ -63,6 +64,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
 
     Route::get('/manajemen-user', UserManagement::class)->name('manajemen-user');
     Route::get('/manajemen-role', RoleManagement::class)->name('manajemen-role');
+    Route::get('/manajemen-unit', UnitManagement::class)->name('manajemen-unit');
     Route::get('/manajemen-suratmasuk', SuratMasukManagement::class)->name('manajemen-suratmasuk');
     Route::get('/manajemen-suratkeluar', SuratKeluarManagement::class)->name('manajemen-suratkeluar');
     Route::get('/surat-masuk/{id}/disposisi', DisposisiManagement::class)->name('disposisi.management');
