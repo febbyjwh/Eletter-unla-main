@@ -281,11 +281,25 @@
                                 @enderror
                             </div>
 
-                            <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-600">Password</label>
-                                <input type="password" wire:model="password"
-                                    class="w-full border border-gray-300 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-                                    placeholder="{{ $isEdit ? 'Kosongkan jika tidak diubah' : '' }}">
+                            <div x-data="{ show: false }">
+                                <label class="block mb-1 text-sm font-medium text-gray-600">
+                                    Password
+                                </label>
+
+                                <div class="relative">
+                                    <input :type="show ? 'text' : 'password'" wire:model="password"
+                                        class="w-full border border-gray-300 rounded-xl p-2 pr-10 text-sm
+                   focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                                        placeholder="{{ $isEdit ? 'Kosongkan jika tidak diubah' : '' }}">
+
+                                    <button type="button" @click="show = !show"
+                                        class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
+
+                                        <i x-show="!show" class="fi fi-rr-eye"></i>
+                                        <i x-show="show" class="fi fi-rr-eye-crossed"></i>
+                                    </button>
+                                </div>
+
                                 @error('password')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -296,8 +310,10 @@
                                 <select wire:model="role"
                                     class="w-full border border-gray-300 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
                                     <option value="">-- Pilih Role --</option>
-                                    @foreach ($roles as $r)
-                                        <option value="{{ $r->id }}">{{ $r->name }}</option>
+                                    @foreach ($roles->whereIn('id', [1, 2]) as $role)
+                                        <option value="{{ $role->id }}">
+                                            {{ ucfirst($role->name) }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @error('role')
