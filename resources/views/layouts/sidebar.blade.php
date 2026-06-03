@@ -96,24 +96,50 @@
                         x-transition:leave="transition ease-in duration-200"
                         x-transition:leave-start="opacity-100 transform translate-y-0"
                         x-transition:leave-end="opacity-0 transform -translate-y-2" class="mt-2 ml-6 space-y-2 text-sm">
-                        {{-- @if (auth()->user()->hasPermission('manage_roles'))
+
+                        {{-- Role --}}
+                        @if (auth()->user()->hasPermission('manage_roles'))
                             <li>
                                 <a href="{{ route('manajemen-role') }}"
-                                    class="flex items-center gap-2 px-2 py-1 rounded-md 
-                   {{ request()->is('manajemen-role') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
+                                    class="flex items-center gap-2 px-2 py-1 rounded-md
+               {{ request()->is('manajemen-role') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
                                     <i class="fi fi-rr-dice-d20"></i> <span>Role</span>
                                 </a>
                             </li>
-                        @endif --}}
+                        @endif
+
+                        @if (auth()->user()->hasPermission('manage_roles'))
+                            <li>
+                                <a href="{{ route('manajemen-unit') }}"
+                                    class="flex items-center gap-2 px-2 py-1 rounded-md
+               {{ request()->is('manajemen-unit') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
+                                    <i class="fi fi-rr-dice-d20"></i> <span>Unit</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- Unit --}}
+                        @if (auth()->user()->hasPermission('manage_unit'))
+                            <li>
+                                <a href="{{ route('manajemen-unit') }}"
+                                    class="flex items-center gap-2 px-2 py-1 rounded-md
+               {{ request()->is('manajemen-unit') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
+                                    <i class="fi fi-rr-building"></i> <span>Unit</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- User --}}
                         @if (auth()->user()->hasPermission('manage_users'))
                             <li>
                                 <a href="{{ route('manajemen-user') }}"
-                                    class="flex items-center gap-2 px-2 py-1 rounded-md 
-                   {{ request()->is('manajemen-user') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
+                                    class="flex items-center gap-2 px-2 py-1 rounded-md
+               {{ request()->is('manajemen-user') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
                                     <i class="fi fi-rr-circle-user"></i> <span>User</span>
                                 </a>
                             </li>
                         @endif
+
                     </ul>
                 </li>
             @endif

@@ -19,14 +19,14 @@ class RoleSeeder extends Seeder
             ],
             [
                 'id' => 2,
-                'name' => 'staff',
+                'name' => 'user',
                 'description' => 'mengelola surat masuk/keluar',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'id' => 3,
-                'name' => 'dosen',
+                'name' => 'unit',
                 'description' => 'mengakses surat akademik',
                 'created_at' => now(),
                 'updated_at' => now(),

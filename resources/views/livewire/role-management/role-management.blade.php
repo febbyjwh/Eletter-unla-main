@@ -1,5 +1,5 @@
 <div class="p-4 sm:p-6 bg-gray-100 min-h-screen">
-    <h2 class="text-lg sm:text-xl font-bold mb-6 text-gray-800">🛡️ Manajemen Role</h2>
+    <h2 class="text-lg sm:text-xl font-bold mb-6 text-gray-800">Manajemen Role</h2>
 
     @if (session()->has('success'))
         <div class="bg-green-50 text-green-700 px-4 py-2 rounded-2xl mb-4 shadow-sm border border-green-200 text-sm sm:text-base">
@@ -78,7 +78,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center p-4 text-gray-500">🙅 Belum ada data role.</td>
+                        <td colspan="4" class="text-center p-4 text-gray-500">Belum ada data role.</td>
                     </tr>
                 @endforelse
             </tbody>

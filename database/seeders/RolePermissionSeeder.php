@@ -25,6 +25,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'manage_users',       'description' => 'Mengelola data user'],
             ['name' => 'manage_roles',       'description' => 'Mengelola role dan permission'],
             ['name' => 'manage_letters',     'description' => 'Melihat surat keluar masuk'],
+            ['name' => 'manage_unit',     'description' => 'Mengelola Unit'],
         ]);
 
         // =========================
@@ -32,8 +33,8 @@ class RolePermissionSeeder extends Seeder
         // =========================
         DB::table('roles')->insert([
             ['name' => 'admin',     'description' => 'Memiliki akses penuh ke sistem'],
-            ['name' => 'staff',     'description' => 'Mengelola surat masuk/keluar'],
-            ['name' => 'dosen',     'description' => 'Mengakses surat akademik'],
+            ['name' => 'user',     'description' => 'Mengelola surat masuk/keluar'],
+            ['name' => 'unit',     'description' => 'Mengakses surat akademik'],
             ['name' => 'mahasiswa', 'description' => 'Mengakses surat pribadi'],
             ['name' => 'guest', 'description' => 'Akun guest'],
         ]);
