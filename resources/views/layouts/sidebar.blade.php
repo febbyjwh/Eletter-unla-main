@@ -72,7 +72,8 @@
             @endif --}}
 
             {{-- 🔽 Menu Manajemen User --}}
-            @if (auth()->user()->hasPermission('manage_users') || auth()->user()->hasPermission('manage_roles'))
+            
+            @if (auth()->user()->hasPermission('manage_users') || auth()->user()->hasPermission('manage_roles') || auth()->user()->hasPermission('manage_unit'))
                 <li>
                     <p class="px-2 mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase">
                         Manajemen User
@@ -104,16 +105,6 @@
                                     class="flex items-center gap-2 px-2 py-1 rounded-md
                {{ request()->is('manajemen-role') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
                                     <i class="fi fi-rr-dice-d20"></i> <span>Role</span>
-                                </a>
-                            </li>
-                        @endif
-
-                        @if (auth()->user()->hasPermission('manage_roles'))
-                            <li>
-                                <a href="{{ route('manajemen-unit') }}"
-                                    class="flex items-center gap-2 px-2 py-1 rounded-md
-               {{ request()->is('manajemen-unit') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-500' }}">
-                                    <i class="fi fi-rr-dice-d20"></i> <span>Unit</span>
                                 </a>
                             </li>
                         @endif
