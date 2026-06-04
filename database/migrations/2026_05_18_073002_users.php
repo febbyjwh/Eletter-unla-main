@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('password');
-            $table->foreignId('unit_id')
-                ->nullable()
-                ->constrained('unit')
+            $table->string('password')->nullable();
+            $table->unsignedBigInteger('unit_id')->nullable();
+            $table->foreign('unit_id')
+                ->references('unit_id')
+                ->on('unit')
                 ->nullOnDelete();
             $table->integer('role_id')->default(5)->comment('2 = user');
             $table->longText('google_access_token')->nullable();
@@ -27,11 +28,6 @@ return new class extends Migration
             $table->tinyInteger('status')->default(0)->comment('0 = nonaktif, 1 = aktif');
             $table->timestamps();
         });
-    }
-
-    public function role()
-    {
-        return $this->belongsTo(Role::class);
     }
 
     /**

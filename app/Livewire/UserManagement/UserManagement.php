@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Unit;
 use Illuminate\Support\Facades\Hash;
 
 class UserManagement extends Component
@@ -13,7 +14,7 @@ class UserManagement extends Component
     use WithPagination;
 
     // Form fields
-    public $name, $email, $unit, $password, $role, $userId;
+    public $name, $email, $unit_id, $password, $role, $userId;
     public $isEdit = false;
     public $showModal = false;
 
@@ -32,7 +33,7 @@ class UserManagement extends Component
     protected $rules = [
         'name' => 'required|min:3',
         'email' => 'required|email|unique:users,email',
-        'unit' => 'nullable|string|max:150',
+        'unit_id' => 'nullable|exists:units,id',
         'password' => 'required|min:6',
         'role' => 'required'
     ];
@@ -53,14 +54,17 @@ class UserManagement extends Component
 
     public function render()
     {
-        $query = User::with('role');
+        $query = User::with('role', 'unit');
+        // dd($query->toSql(), $query->getBindings());
 
         // Search by name/email/unit
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
                     ->orWhere('email', 'like', '%' . $this->search . '%')
-                    ->orWhere('unit', 'like', '%' . $this->search . '%');
+                    ->orWhereHas('unit', function ($q) {
+                        $q->where('nama_unit', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
@@ -76,9 +80,12 @@ class UserManagement extends Component
         $users = $query->orderBy($sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
+        $units = Unit::orderBy('nama_unit')->get();
+
         return view('livewire.user-management.user-management', [
             'users' => $users,
-            'roles' => Role::all()
+            'roles' => Role::all(),
+            'units' => $units,
         ]);
     }
 
@@ -105,7 +112,7 @@ class UserManagement extends Component
             $this->userId = $user->id;
             $this->name = $user->name;
             $this->email = $user->email;
-            $this->unit = $user->unit;
+            $this->unit_id = $user->unit_id;
             $this->role = $user->role_id;
         }
 
@@ -131,7 +138,7 @@ class UserManagement extends Component
     {
         $this->name = '';
         $this->email = '';
-        $this->unit = '';
+        $this->unit_id = '';
         $this->password = '';
         $this->role = '';
         $this->userId = null;
@@ -156,16 +163,29 @@ class UserManagement extends Component
 
     public function store()
     {
-        $this->validate();
+        // dd([
+        //     'name' => $this->name,
+        //     'email' => $this->email,
+        //     'unit_id' => $this->unit_id,
+        //     'role' => $this->role,
+        // ]);
+        $this->validate([
+            'name' => 'required|min:3',
+            'email' => 'required|email|unique:users,email',
+            'unit_id' => 'nullable|exists:unit,unit_id',
+            'password' => 'required|min:6',
+            'role' => 'required'
+        ]);
 
-        User::create([
+        $user = User::create([
             'name' => $this->name,
             'email' => $this->email,
-            'unit' => $this->unit,
+            'unit_id' => $this->unit_id,
             'password' => Hash::make($this->password),
             'role_id' => $this->role,
-            'status' => 0, // pending
+            'status' => 0,
         ]);
+        // dd($user->toArray());
 
         session()->flash('success', 'User berhasil ditambahkan!');
         $this->closeModal();
@@ -177,7 +197,7 @@ class UserManagement extends Component
         $this->validate([
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users,email,' . $this->userId,
-            'unit' => 'nullable|string|max:150',
+            'unit_id' => 'nullable|exists:unit,unit_id',
             'role' => 'required',
         ]);
 
@@ -185,7 +205,7 @@ class UserManagement extends Component
         $user->update([
             'name' => $this->name,
             'email' => $this->email,
-            'unit' => $this->unit,
+            'unit_id' => $this->unit_id,
             'role_id' => $this->role,
             'password' => $this->password ? Hash::make($this->password) : $user->password,
         ]);

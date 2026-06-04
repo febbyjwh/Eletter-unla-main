@@ -482,7 +482,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12H3" />
                         </svg>
-                        Login
+                        Masuk ke Dashboard
                     </button>
 
                     <a href="{{ route('google.login') }}" class="google-login">
@@ -495,8 +495,8 @@
                 </div>
 
                 <div class="register-note">
-                    Belum punya akun?
-                    <a href="{{ route('register') }}">Buat akun E-Letter</a>
+                    Daftarkan Akun Unit?
+                    <a href="{{ route('register-unit') }}">Buat akun unit E-Letter</a>
                 </div>
             </form>
 

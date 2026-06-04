@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('unit', function (Blueprint $table) {
-            $table->id();
+            $table->id('unit_id');
             $table->string('kode_unit')->unique();
             $table->string('nama_unit');
-            $table->string('email')->nullable();
+            $table->string('email')->unique();
+            $table->string('password')->nullable();
             $table->string('google_drive_folder_id')->nullable();
             $table->longText('google_access_token')->nullable();
             $table->longText('google_refresh_token')->nullable();

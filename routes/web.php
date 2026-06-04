@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 
 use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\Auth\Login;
+use App\Livewire\Auth\LoginUnit;
 use App\Livewire\Auth\Register;
+use App\Livewire\Auth\RegisterUnit;
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\ResetPassword;
 use App\Http\Controllers\GoogleController;
@@ -26,6 +28,8 @@ use App\Livewire\Laporan\LaporanManagement;
 
 Route::get('/', Login::class)->name('login');
 Route::get('/register', Register::class)->name('register');
+Route::get('/login-unit', LoginUnit::class)->name('login-unit');
+Route::get('/register-unit', RegisterUnit::class)->name('register-unit');
 // Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
 // Route::get('/auth/google/{role}',[GoogleController::class, 'redirect'])->name('google.redirect');
 
