@@ -268,15 +268,15 @@
         .login-submit,
         .google-login {
             width: 100%;
-            height: 58px;
+            height: 50px;
             border-radius: 15px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             color: #ffffff;
-            font-size: 18px;
-            font-weight: 900;
+            font-size: 16px;
+            font-weight: 600;
             text-decoration: none;
             transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
         }

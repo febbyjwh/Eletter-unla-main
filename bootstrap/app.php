@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'active.user' => \App\Http\Middleware\ActiveUserMiddleware::class,
+            'active.unit' => \App\Http\Middleware\ActiveUnitMiddleware::class,
+            
+            'unit' => \App\Http\Middleware\UnitAuthMiddleware::class,
         ]);
     })
 

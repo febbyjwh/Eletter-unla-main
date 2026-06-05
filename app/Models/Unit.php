@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Unit extends Model
+class Unit extends Authenticatable
 {
     protected $table = 'unit';
-
     protected $primaryKey = 'unit_id';
+
     protected $fillable = [
         'kode_unit',
         'nama_unit',
@@ -18,8 +18,18 @@ class Unit extends Model
         'password'
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token', // opsional tapi direkomendasikan
+    ];
+
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+
+    public function hasPermission($permission)
+    {
+        return true;
     }
 }

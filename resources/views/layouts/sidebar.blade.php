@@ -1,3 +1,16 @@
+{{-- {{ dd(
+    Auth::user(),
+    Auth::guard('unit')->user()
+) }} --}}
+@php
+    $admin = Auth::user();
+    $unit = Auth::guard('unit')->user();
+
+    $currentUser = $admin ?? $unit;
+    $isAdmin = !is_null($admin);
+    $isUnit = !is_null($unit);
+@endphp
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
 <aside id="sidebar"
     class="fixed inset-y-0 left-0 w-64 bg-white shadow-md p-4 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 overflow-y-auto will-change-transform"
@@ -9,7 +22,7 @@
             <p class="px-2 mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase">
                 Main Menu
             </p>
-            @if (auth()->user()->hasPermission('view_dashboard'))
+            @if ($isUnit || ($isAdmin && $admin->hasPermission('view_dashboard')))
                 <li>
                     <a href="/dashboard"
                         class="flex items-center gap-3 px-2 py-1 rounded-md 
@@ -39,7 +52,7 @@
         </li>
       @endif --}}
 
-            @if (auth()->user()->hasPermission('manage_letters'))
+            @if ($isUnit || ($isAdmin && $admin->hasPermission('manage_letters')))
                 <li>
                     <a href="{{ route('arsip.admin') }}"
                         class="flex items-center gap-3 px-2 py-1 rounded-md 
@@ -72,8 +85,12 @@
             @endif --}}
 
             {{-- 🔽 Menu Manajemen User --}}
-            
-            @if (auth()->user()->hasPermission('manage_users') || auth()->user()->hasPermission('manage_roles') || auth()->user()->hasPermission('manage_unit'))
+
+            @if (
+                $isAdmin &&
+                    ($admin->hasPermission('manage_users') ||
+                        $admin->hasPermission('manage_roles') ||
+                        $admin->hasPermission('manage_unit')))
                 <li>
                     <p class="px-2 mb-2 text-xs font-semibold tracking-widest text-gray-400 uppercase">
                         Manajemen User
@@ -99,7 +116,7 @@
                         x-transition:leave-end="opacity-0 transform -translate-y-2" class="mt-2 ml-6 space-y-2 text-sm">
 
                         {{-- Role --}}
-                        @if (auth()->user()->hasPermission('manage_roles'))
+                        @if ($admin->hasPermission('manage_roles'))
                             <li>
                                 <a href="{{ route('manajemen-role') }}"
                                     class="flex items-center gap-2 px-2 py-1 rounded-md
@@ -110,7 +127,7 @@
                         @endif
 
                         {{-- Unit --}}
-                        @if (auth()->user()->hasPermission('manage_unit'))
+                        @if ($isAdmin && $admin->hasPermission('manage_unit'))
                             <li>
                                 <a href="{{ route('manajemen-unit') }}"
                                     class="flex items-center gap-2 px-2 py-1 rounded-md
@@ -121,7 +138,7 @@
                         @endif
 
                         {{-- User --}}
-                        @if (auth()->user()->hasPermission('manage_users'))
+                        @if ($isAdmin && $admin->hasPermission('manage_users'))
                             <li>
                                 <a href="{{ route('manajemen-user') }}"
                                     class="flex items-center gap-2 px-2 py-1 rounded-md
@@ -145,7 +162,7 @@
                 d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5Z" />
         </svg>
         <div>
-            <p class="font-semibold">{{ auth()->user()->name }}</p>
+            <p class="font-semibold">{{ $isAdmin ? $admin->name : $unit->nama_unit }}</p>
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="text-sm text-red-500 hover:underline">

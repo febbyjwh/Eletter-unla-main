@@ -268,14 +268,14 @@
         .register-google-btn {
             display: flex;
             width: 100%;
-            height: 58px;
+            height: 50px;
             border-radius: 16px;
             align-items: center;
             justify-content: center;
             gap: 10px;
             color: #ffffff;
             font-size: 17px;
-            font-weight: 900;
+            font-weight: 700;
             text-decoration: none;
             background: #ef4444;
             box-shadow: 0 10px 18px rgba(239, 68, 68, .18);
@@ -442,7 +442,7 @@
                                     d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
                             </svg>
                         </span>
-                        <input type="email" wire:model="email" placeholder="email@unla.ac.id"
+                        <input type="email" wire:model="email" placeholder="unla@gmail.com"
                             class="w-full pl-9 pr-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm
                                    focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
                     </div>

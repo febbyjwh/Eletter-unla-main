@@ -268,7 +268,7 @@
         .login-submit,
         .google-login {
             width: 100%;
-            height: 58px;
+            height: 50px;
             border-radius: 15px;
             display: inline-flex;
             align-items: center;
@@ -276,7 +276,7 @@
             gap: 8px;
             color: #ffffff;
             font-size: 18px;
-            font-weight: 900;
+            font-weight: 700;
             text-decoration: none;
             transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
         }
@@ -400,7 +400,7 @@
                 <span>E-Letter UNLA</span>
             </div>
 
-            <h2 class="login-title">Kelola Surat Lebih Terarah</h2>
+            <h2 class="login-title">Membuat Akun Unit Untuk Arsip Surat Setiap Unit</h2>
 
             <p class="login-copy">
                 Sistem persuratan digital untuk membantu pencatatan, monitoring,
@@ -456,21 +456,64 @@
 
             <form wire:submit.prevent="login" class="login-form">
                 <div>
-                    <input type="email" wire:model="email" class="login-input" placeholder="contoh@unla.ac.id"
-                        required>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                            </svg>
+                        </span>
+                        <input type="email" wire:model="email" placeholder="email@unla.ac.id"
+                            class="w-full pl-9 pr-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm
+                                   focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                    </div>
                     @error('email')
-                        <p class="login-field-error">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div>
-                    <div class="login-field-top">
-                        <a href="{{ route('password.request') }}">Lupa Password?</a>
+                <div x-data="{ show: false }">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Password
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 11c-1.657 0-3 1.343-3 3v3h6v-3c0-1.657-1.343-3-3-3z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 11V7a6 6 0 0112 0v4" />
+                            </svg>
+                        </span>
+
+                        <input :type="show ? 'text' : 'password'" wire:model="password" placeholder="Minimal 8 karakter"
+                            class="w-full pr-10 pl-9 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-sm
+                   focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+
+                        <button type="button" @click="show = !show"
+                            class="absolute inset-y-0 right-3 flex items-center text-gray-400 focus:outline-none">
+                            <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg x-show="show" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 012.77-3.823M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 3l18 18" />
+                            </svg>
+                        </button>
                     </div>
-                    <input type="password" wire:model="password" class="login-input" placeholder="Masukkan password"
-                        required>
                     @error('password')
-                        <p class="login-field-error">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 

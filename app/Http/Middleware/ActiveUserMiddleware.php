@@ -28,7 +28,7 @@ class ActiveUserMiddleware
             // role belum ditentukan
             if (is_null($user->role_id)) {
                 return redirect()->route('waiting.approval');
-            }
+            }   
         }
 
         return $next($request);

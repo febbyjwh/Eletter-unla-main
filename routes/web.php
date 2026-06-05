@@ -53,12 +53,24 @@ Route::post('/logout', function (Request $request) {
 })
 ->name('logout');
 
+Route::post('/logout.unit', function (Request $request) {
+
+    Auth::guard('unit')->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/');
+})
+->name('logout.unit');
+
 // waiting approval page
 Route::middleware('auth')->group(function () {
     Route::view('/waiting-approval', 'auth.waiting-approval')
         ->name('waiting.approval');
 });
 
+// user 
 Route::middleware(['auth', 'active.user'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile.show');
@@ -79,4 +91,27 @@ Route::middleware(['auth', 'active.user'])->group(function () {
     Route::get('/template-surat', TamplateSuratManagement::class)->name('template-surat.index');
 
     Route::post('/upload-drive', [GoogleController::class, 'uploadToDrive']);
+});
+
+// unit
+Route::middleware(['unit', 'active.unit'])->group(function () {
+    Route::get('/dashboard-unit', Dashboard::class)->name('dashboard.unit');
+    Route::get('/profile-unit', Profile::class)->name('profile.show.unit');
+
+    Route::get('/arsip/admin-unit', ArsipAdmin::class)->name('arsip.admin.unit');
+    Route::get('/arsip/user-unit', ArsipUser::class)->name('arsip.user.unit');
+
+    Route::get('/manajemen-user-unit', UserManagement::class)->name('manajemen-user.unit');
+    Route::get('/manajemen-role-unit', RoleManagement::class)->name('manajemen-role.unit');
+    Route::get('/manajemen-unit-unit', UnitManagement::class)->name('manajemen-unit.unit');
+    Route::get('/manajemen-suratmasuk-unit', SuratMasukManagement::class)->name('manajemen-suratmasuk.unit');
+    Route::get('/manajemen-suratkeluar-unit', SuratKeluarManagement::class)->name('manajemen-suratkeluar.unit');
+    Route::get('/surat-masuk/{id}/disposisi-unit', DisposisiManagement::class)->name('disposisi.management.uni');
+    // Route::get('/disposisi/{suratMasukId}', DispossiisiManagement::class)
+        // ->name('disposisi.management');
+    Route::get('/laporan-unit', LaporanManagement::class)->name('laporan.index.unit');
+
+    Route::get('/template-surat-unit', TamplateSuratManagement::class)->name('template-surat.index.unit');
+
+    Route::post('/upload-drive-unit', [GoogleController::class, 'uploadToDrive']);
 });

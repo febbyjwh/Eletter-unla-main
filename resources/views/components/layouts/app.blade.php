@@ -1,13 +1,3 @@
-{{-- @php
-    dd([
-        'user' => Auth::user(),
-        'role' => Auth::user()?->role,
-        'permissions' => Auth::user()?->role?->permissions,
-    ]);
-@endphp --}}
-{{-- @php
-dd(Gate::abilities());
-@endphp --}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,18 +7,31 @@ dd(Gate::abilities());
 
     <title>E-Letter Dashboard</title>
 
-    {{-- Tailwind CSS CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    {{-- Alpine.js (dibutuhkan untuk dropdown) --}}
-    {{-- <script src="//unpkg.com/alpinejs" defer></script> --}}
 
     @livewireStyles
 </head>
 
 <body class="bg-gray-100 font-sans">
+
+    @php
+        $adminUser = Auth::user();
+        $unitUser  = Auth::guard('unit')->user();
+
+        $currentUser = $adminUser ?? $unitUser;
+        $isAdmin     = !is_null($adminUser);
+        $isUnit      = !is_null($unitUser);
+
+        $displayName = $isAdmin
+            ? ($adminUser->name ?? 'User')
+            : ($unitUser->nama_unit ?? 'User');
+
+        $displayRole = $isAdmin
+            ? (optional($adminUser->role)->name ?? 'Default')
+            : 'Unit';
+    @endphp
 
     {{-- Sidebar --}}
     @include('layouts.sidebar')
@@ -41,7 +44,6 @@ dd(Gate::abilities());
         {{-- Navbar --}}
         <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow mb-6">
             <div class="flex items-center gap-3">
-                {{-- Burger button hanya tampil di mobile --}}
                 <button id="menuBtn"
                     class="md:hidden p-2 rounded-lg bg-blue-500 text-white focus:outline-none focus:ring">
                     ☰
@@ -51,17 +53,15 @@ dd(Gate::abilities());
 
             {{-- Bagian kanan (notif + user dropdown) --}}
             <div class="flex items-center gap-4" x-data="{ notifOpen: false, userOpen: false }">
-                {{-- Livewire notifikasi --}}
+
                 @php
                     use App\Models\Arsip;
-                    $list = Arsip::where('jenis_surat', 'masuk')->latest()->take(5)->get();
-
+                    $list   = Arsip::where('jenis_surat', 'masuk')->latest()->take(5)->get();
                     $jumlah = Arsip::where('jenis_surat', 'masuk')->count();
                 @endphp
 
                 {{-- Notifikasi --}}
                 <div x-data="{ notifOpen: false }" class="relative">
-                    {{-- Tombol Notifikasi --}}
                     <button @click="notifOpen = !notifOpen" class="p-2 bg-gray-200 rounded-full relative focus:ring">
                         🔔
                         @if ($jumlah > 0)
@@ -72,7 +72,6 @@ dd(Gate::abilities());
                         @endif
                     </button>
 
-                    {{-- Dropdown Notifikasi --}}
                     <div x-show="notifOpen" @click.outside="notifOpen = false" x-transition
                         class="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50">
                         <div class="p-3 border-b text-sm font-semibold text-gray-700">Notifikasi Surat Masuk</div>
@@ -92,7 +91,7 @@ dd(Gate::abilities());
                         @endif
 
                         <div class="p-2 text-center border-t text-xs text-blue-600 hover:bg-gray-50 cursor-pointer">
-                            <a href="{{ route('manajemen-suratmasuk') }}">Lihat semua</a>
+                            <a href="{{ route('arsip.admin') }}">Lihat semua</a>
                         </div>
                     </div>
                 </div>
@@ -100,14 +99,12 @@ dd(Gate::abilities());
                 {{-- User Profile --}}
                 <div class="relative">
                     <button @click="userOpen = !userOpen" class="flex items-center gap-2 focus:outline-none">
-                        {{-- Avatar User --}}
-                        {{-- SVG User --}}
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-600" fill="currentColor"
                             viewBox="0 0 24 24">
                             <path
                                 d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5Z" />
                         </svg>
-                        <span class="text-sm font-medium text-gray-700">{{ Auth::user()->name ?? 'Pengguna' }}</span>
+                        <span class="text-sm font-medium text-gray-700">{{ $displayName }}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -118,29 +115,44 @@ dd(Gate::abilities());
                     <div x-show="userOpen" @click.outside="userOpen = false" x-transition
                         class="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                         <div class="p-3 border-b text-sm font-semibold text-gray-700">
-                            Halo, {{ Auth::user()->name ?? 'User' }}
+                            Halo, {{ $displayName }}
                             <p class="text-xs text-gray-500">
-                                Role: {{ optional(Auth::user()->role)->name ?? 'Default' }}
+                                Role: {{ $displayRole }}
                             </p>
                         </div>
 
                         <ul class="text-sm text-gray-700">
-                            <li>
-                                <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
-                                    <i class="fi fi-sr-settings"></i> Pengaturan</a>
-                            </li>
-
-                            {{-- Menu dinamis berdasarkan role --}}
-                            
-                            @if (optional(Auth::user()->role)->name === 'Admin')
+                            @if ($isAdmin)
                                 <li>
-                                    <a href="{{ route('arsip.admin') }}" class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
-                                        <i class="fi fi-sr-folder-open"></i> Arsip Semua Surat</a>
+                                    <a href="{{ route('profile.show') }}"
+                                        class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
+                                        <i class="fi fi-sr-settings"></i> Pengaturan
+                                    </a>
+                                </li>
+                            @endif
+
+                            {{-- Menu arsip berdasarkan tipe user --}}
+                            @if ($isAdmin && optional($adminUser->role)->name === 'Admin')
+                                <li>
+                                    <a href="{{ route('arsip.admin') }}"
+                                        class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
+                                        <i class="fi fi-sr-folder-open"></i> Arsip Semua Surat
+                                    </a>
+                                </li>
+                            @elseif ($isAdmin)
+                                <li>
+                                    <a href="{{ route('arsip.user') }}"
+                                        class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
+                                        <i class="fi fi-sr-folder-open"></i> Arsip Saya
+                                    </a>
                                 </li>
                             @else
+                                {{-- Unit user --}}
                                 <li>
-                                    <a href="{{ route('arsip.user') }}" class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
-                                        <i class="fi fi-sr-folder-open"></i> Arsip Saya</a>
+                                    <a href="{{ route('arsip.admin') }}"
+                                        class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
+                                        <i class="fi fi-sr-folder-open"></i> Arsip
+                                    </a>
                                 </li>
                             @endif
 
@@ -148,16 +160,18 @@ dd(Gate::abilities());
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="w-full text-left px-4 py-2 hover:bg-gray-50">
-                                        <i class="fi fi-sr-sign-out-alt"></i> Logout </button>
+                                        <i class="fi fi-sr-sign-out-alt"></i> Logout
+                                    </button>
                                 </form>
                             </li>
                         </ul>
                     </div>
                 </div>
+
             </div>
         </div>
 
-        {{-- Slot konten (isi dari child view) --}}
+        {{-- Slot konten --}}
         {{ $slot }}
     </div>
 
@@ -165,7 +179,6 @@ dd(Gate::abilities());
     @stack('scripts')
 
     <script>
-        // === Sidebar Mobile Toggle ===
         const menuBtn = document.getElementById('menuBtn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');

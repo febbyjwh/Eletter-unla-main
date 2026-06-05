@@ -36,7 +36,7 @@ class LoginUnit extends Component
 
             session()->regenerate();
 
-            return redirect('/dashboard');
+            return redirect('/dashboard-unit');
         }
 
         $this->addError('email', 'Email atau password salah.');
