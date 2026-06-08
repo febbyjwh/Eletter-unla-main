@@ -65,7 +65,7 @@
                         <td class="p-3">{{ $units->firstItem() + $index }}</td>
                         <td class="p-3 font-medium text-gray-800">{{ $unit->kode_unit }}</td>
                         <td class="p-3 text-gray-700">{{ $unit->nama_unit }}</td>
-                        <td class="p-3 text-gray-500">{{ $unit->email ?? '-' }}</td>
+                        <td class="p-3 text-gray-500">{{ $unit->user?->email ?? '-' }}</td>
                         <td class="p-3">
                             @if ($unit->status == 1)
                                 <span

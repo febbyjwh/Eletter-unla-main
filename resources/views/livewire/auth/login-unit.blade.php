@@ -525,7 +525,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12H3" />
                         </svg>
-                        Masuk ke Dashboard
+                        Login
                     </button>
 
                     <a href="{{ route('google.login') }}" class="google-login">

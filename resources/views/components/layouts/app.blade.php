@@ -17,20 +17,22 @@
 <body class="bg-gray-100 font-sans">
 
     @php
-        $adminUser = Auth::user();
-        $unitUser  = Auth::guard('unit')->user();
+        $user = Auth::user();
 
-        $currentUser = $adminUser ?? $unitUser;
-        $isAdmin     = !is_null($adminUser);
-        $isUnit      = !is_null($unitUser);
+        $displayName = $user->name ?? 'User';
 
-        $displayName = $isAdmin
-            ? ($adminUser->name ?? 'User')
-            : ($unitUser->nama_unit ?? 'User');
+        $role = $user->role_id ?? null;
 
-        $displayRole = $isAdmin
-            ? (optional($adminUser->role)->name ?? 'Default')
-            : 'Unit';
+        $displayRole = match ($role) {
+            1 => 'Admin',
+            2 => 'User',
+            3 => 'Unit',
+            default => 'Unknown',
+        };
+
+        $isAdmin = $role == 1;
+        $isUser = $role == 2;
+        $isUnit = $role == 3;
     @endphp
 
     {{-- Sidebar --}}
@@ -56,7 +58,7 @@
 
                 @php
                     use App\Models\Arsip;
-                    $list   = Arsip::where('jenis_surat', 'masuk')->latest()->take(5)->get();
+                    $list = Arsip::where('jenis_surat', 'masuk')->latest()->take(5)->get();
                     $jumlah = Arsip::where('jenis_surat', 'masuk')->count();
                 @endphp
 
@@ -132,28 +134,12 @@
                             @endif
 
                             {{-- Menu arsip berdasarkan tipe user --}}
-                            @if ($isAdmin && optional($adminUser->role)->name === 'Admin')
-                                <li>
-                                    <a href="{{ route('arsip.admin') }}"
-                                        class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
-                                        <i class="fi fi-sr-folder-open"></i> Arsip Semua Surat
-                                    </a>
-                                </li>
-                            @elseif ($isAdmin)
-                                <li>
-                                    <a href="{{ route('arsip.user') }}"
-                                        class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
-                                        <i class="fi fi-sr-folder-open"></i> Arsip Saya
-                                    </a>
-                                </li>
-                            @else
-                                {{-- Unit user --}}
-                                <li>
-                                    <a href="{{ route('arsip.admin') }}"
-                                        class="block px-4 py-2 hover:bg-gray-50 items-center gap-2 flex">
-                                        <i class="fi fi-sr-folder-open"></i> Arsip
-                                    </a>
-                                </li>
+                            @if ($role == 1)
+                                <a href="{{ route('arsip.admin') }}">Arsip Semua</a>
+                            @elseif ($role == 2)
+                                <a href="{{ route('arsip.user') }}">Arsip Saya</a>
+                            @elseif ($role == 3)
+                                <a href="{{ route('arsip.admin') }}">Arsip Unit</a>
                             @endif
 
                             <li>

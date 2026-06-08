@@ -20,26 +20,48 @@ class LoginUnit extends Component
 
     public function login()
     {
-        if (Auth::guard('unit')->attempt([
+        if (!Auth::attempt([
             'email' => $this->email,
             'password' => $this->password,
         ])) {
 
-            $unit = Auth::guard('unit')->user();
+            $this->addError(
+                'email',
+                'Email atau password salah.'
+            );
 
-            if ($unit->status == 0) {
-                Auth::guard('unit')->logout();
-
-                $this->addError('email', 'Unit belum aktif.');
-                return;
-            }
-
-            session()->regenerate();
-
-            return redirect('/dashboard-unit');
+            return;
         }
 
-        $this->addError('email', 'Email atau password salah.');
+        $user = Auth::user();
+
+        if ($user->role_id != 3) {
+
+            Auth::logout();
+
+            $this->addError(
+                'email',
+                'Akun ini bukan akun unit.'
+            );
+
+            return;
+        }
+
+        if ($user->status != 1) {
+
+            Auth::logout();
+
+            $this->addError(
+                'email',
+                'Unit masih menunggu approval admin.'
+            );
+
+            return;
+        }
+
+        session()->regenerate();
+
+        return redirect()->route('dashboard');
     }
 
     public function render()

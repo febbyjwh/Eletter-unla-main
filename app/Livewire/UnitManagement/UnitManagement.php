@@ -48,11 +48,13 @@ class UnitManagement extends Component
 
     public function render()
     {
-        $units = Unit::query()
+        $units = Unit::with('user')
             ->where(function ($query) {
                 $query->where('kode_unit', 'like', "%{$this->search}%")
                     ->orWhere('nama_unit', 'like', "%{$this->search}%")
-                    ->orWhere('email', 'like', "%{$this->search}%");
+                    ->orWhereHas('user', function ($q) {
+                        $q->where('email', 'like', "%{$this->search}%");
+                    });
             })
             ->latest()
             ->paginate($this->perPage);
@@ -101,17 +103,30 @@ class UnitManagement extends Component
 
         $this->validate($this->rules(), $messages);
 
-        Unit::updateOrCreate(
+        $unit = Unit::updateOrCreate(
             ['unit_id' => $this->unitId],
             [
                 'kode_unit' => $this->kode_unit,
                 'nama_unit' => $this->nama_unit,
-                'email'     => $this->email,
                 'status'    => $this->status,
             ]
         );
 
-        session()->flash('message', $this->isEdit ? 'Unit berhasil diperbarui' : 'Unit berhasil ditambahkan');
+        // update email akun unit
+        if ($unit->user) {
+
+            $unit->user->update([
+                'email' => $this->email,
+                'status' => $this->status,
+            ]);
+        }
+
+        session()->flash(
+            'message',
+            $this->isEdit
+                ? 'Unit berhasil diperbarui'
+                : 'Unit berhasil ditambahkan'
+        );
 
         $this->closeModal();
     }
@@ -123,7 +138,7 @@ class UnitManagement extends Component
         $this->unitId = $unit->unit_id;
         $this->kode_unit = $unit->kode_unit;
         $this->nama_unit = $unit->nama_unit;
-        $this->email = $unit->email;
+        $this->email = $unit->user?->email;
         $this->status = $unit->status;
 
         $this->isEdit = true;

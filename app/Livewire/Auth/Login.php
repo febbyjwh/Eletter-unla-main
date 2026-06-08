@@ -12,34 +12,48 @@ class Login extends Component
 
     public function login()
     {
-        if (Auth::attempt([
+        if (!Auth::attempt([
             'email' => $this->email,
             'password' => $this->password,
         ])) {
 
-            $user = Auth::user();
+            $this->addError(
+                'email',
+                'Email atau password salah.'
+            );
 
-            // cek status akun
-            if ($user->status == 0) {
-                Auth::logout();
-
-                $this->addError(
-                    'email',
-                    'Akun Anda belum aktif.'
-                );
-
-                return;
-            }
-
-            session()->regenerate();
-
-            return redirect()->intended('/dashboard');
+            return;
         }
 
-        $this->addError(
-            'email',
-            'Email atau password salah.'
-        );
+        $user = Auth::user();
+
+        if ($user->role_id == 3) {
+
+            Auth::logout();
+
+            $this->addError(
+                'email',
+                'Silakan login melalui halaman unit.'
+            );
+
+            return;
+        }
+
+        if ($user->status != 1) {
+
+            Auth::logout();
+
+            $this->addError(
+                'email',
+                'Akun masih menunggu approval admin.'
+            );
+
+            return;
+        }
+
+        session()->regenerate();
+
+        return redirect()->route('dashboard');
     }
 
     public function render()

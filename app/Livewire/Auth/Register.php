@@ -33,7 +33,7 @@ class Register extends Component
 
         session()->flash('success', 'Registrasi berhasil, tunggu approval admin.');
     }
-    
+
     public function togglePassword()
     {
         $this->showPassword = !$this->showPassword;
@@ -63,8 +63,8 @@ class Register extends Component
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => 'user',
-            'status' => 'pending',
+            'role_id' => 2,
+            'status' => 0,
         ]);
 
         session()->flash('success', 'Akun berhasil dibuat. Tunggu persetujuan admin.');

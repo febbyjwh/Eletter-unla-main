@@ -23,9 +23,13 @@ class Unit extends Authenticatable
         'remember_token', // opsional tapi direkomendasikan
     ];
 
-    public function users()
+    public function user()
     {
-        return $this->hasMany(User::class);
+        return $this->hasOne(
+            User::class,
+            'unit_id',
+            'unit_id'
+        );
     }
 
     public function hasPermission($permission)

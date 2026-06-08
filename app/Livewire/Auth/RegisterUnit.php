@@ -4,8 +4,10 @@ namespace App\Livewire\Auth;
 
 use Livewire\Component;
 use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterUnit extends Component
@@ -15,7 +17,7 @@ class RegisterUnit extends Component
     public $password;
 
     protected $rules = [
-        'email' => 'required|email|unique:unit,email',
+        'email' => 'required|email|unique:users,email',
         'nama_unit' => 'required|string|max:255',
         'password' => 'required|string|min:8',
     ];
@@ -24,23 +26,28 @@ class RegisterUnit extends Component
     {
         $validated = $this->validate();
 
-        try {
-            Unit::create([
+        DB::transaction(function () use ($validated) {
+
+            $unit = Unit::create([
                 'kode_unit' => 'UNIT-' . strtoupper(Str::random(6)),
-                'email' => $validated['email'],
                 'nama_unit' => $validated['nama_unit'],
-                'password' => Hash::make($validated['password']),
                 'status' => 0,
             ]);
 
-            $this->reset(['email', 'nama_unit', 'password']);
+            User::create([
+                'name' => $validated['nama_unit'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role_id' => 3,
+                'unit_id' => $unit->id,
+                'status' => 0,
+            ]);
+        });
 
-            session()->flash('success', 'Unit berhasil didaftarkan!');
-        } catch (\Exception $e) {
-            logger()->error($e->getMessage());
-
-            session()->flash('error', 'Terjadi kesalahan saat mendaftarkan unit.');
-        }
+        session()->flash(
+            'success',
+            'Pendaftaran unit berhasil. Menunggu approval admin.'
+        );
     }
 
     public function render()
