@@ -235,6 +235,13 @@ class UserManagement extends Component
             'status' => 1,
         ]);
 
+        if ($user->unit_id) {
+            Unit::where('unit_id', $user->unit_id)
+                ->update([
+                    'status' => 1,
+                ]);
+        }
+
         unset($this->selectedRole[$id]);
 
         session()->flash('success', 'User berhasil diverifikasi!');

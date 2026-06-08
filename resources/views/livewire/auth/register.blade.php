@@ -542,7 +542,7 @@
 
             <div class="register-divider">atau daftar dengan</div>
 
-            <button wire:click="register" style="background:#dc2626; box-shadow: 0 6px 14px rgba(220,38,38,.22);"
+            <button wire:click="redirectToGoogle" style="background:#dc2626; box-shadow: 0 6px 14px rgba(220,38,38,.22);"
                 class="register-google-btn w-full transition hover:brightness-110">
 
                 <svg viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">

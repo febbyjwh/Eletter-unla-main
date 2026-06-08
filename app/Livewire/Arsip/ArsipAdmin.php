@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Http\Controllers\GoogleController;
+use App\Services\GoogleDriveService;
 use App\Models\Arsip;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Storage;
@@ -57,17 +58,15 @@ class ArsipAdmin extends Component
             'new_file' => ($this->isEdit ? 'nullable' : 'required') . '|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
-        // default pakai file lama
         $filePath = $this->file_surat;
 
-        // upload file baru
         if ($this->new_file) {
-
             try {
-                $googleController = new GoogleController();
 
-                $upload = $googleController->uploadFileToDrive(
-                    $this->new_file
+                $upload = GoogleController::uploadFileToDrive(
+                    $this->new_file,
+                    $this->jenis_surat,
+                    $this->tanggal
                 );
 
                 $filePath = $upload['url'] ?? null;
@@ -78,7 +77,7 @@ class ArsipAdmin extends Component
         }
 
         if (!$filePath) {
-            $this->addError('new_file', 'File arsip wajib diupload.');
+            $this->addError('new_file', 'File wajib diupload.');
             return;
         }
 
@@ -93,14 +92,8 @@ class ArsipAdmin extends Component
         ];
 
         if ($this->isEdit) {
-            // dd($this->new_file);
-            $this->arsipQuery()
-                ->findOrFail($this->arsipId)
-                ->update($data);
-
-            session()->flash('message', 'Arsip berhasil diupdate');
+            $this->arsipQuery()->findOrFail($this->arsipId)->update($data);
         } else {
-
             Arsip::create(array_merge($data, [
                 'user_id' => auth()->id(),
                 'created_by' => auth()->id(),
@@ -108,12 +101,9 @@ class ArsipAdmin extends Component
                 'created_role_id' => auth()->user()->role_id,
                 'updated_role_id' => auth()->user()->role_id,
             ]));
-
-            session()->flash('message', 'Arsip berhasil ditambahkan');
         }
 
         $this->dispatch('arsipUpdated');
-
         $this->closeModal();
     }
 

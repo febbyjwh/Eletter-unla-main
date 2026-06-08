@@ -2,92 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Unit;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Facades\Session;
-use Google_Client;
-use Google_Service_Drive;
+use Google\Client;
+use Google\Service\Drive;
+use Google\Service\Drive\DriveFile;
+use Google\Service\Drive\Permission;
 
 class GoogleController extends Controller
 {
-    private static function makeGoogleToken($accessToken, $expiresIn = null): array
+    private function scopes(): array
     {
-        $token = [
-            'access_token' => $accessToken,
+        return [
+            'openid',
+            'email',
+            'profile',
+            'https://www.googleapis.com/auth/drive.file',
         ];
-
-        if ($expiresIn) {
-            $token['expires_in'] = $expiresIn;
-            $token['created'] = time();
-        }
-
-        return $token;
     }
 
-    private static function decodeGoogleToken($storedToken): array
-    {
-        $token = json_decode($storedToken, true);
-
-        if (is_string($token)) {
-            return self::makeGoogleToken($token);
-        }
-
-        if (is_array($token) && isset($token['access_token'])) {
-            return $token;
-        }
-
-        if (is_string($storedToken) && $storedToken !== '') {
-            return self::makeGoogleToken($storedToken);
-        }
-
-        throw new \Exception('Format token Google tidak valid. Silakan login ulang dengan Google.');
-    }
-
-    public function redirect()
-    {
-        return Socialite::driver('google')
-            ->scopes([
-                'openid',
-                'email',
-                'profile',
-                'https://www.googleapis.com/auth/drive.file',
-            ])
-            ->with([
-                'access_type' => 'offline',
-            ])
-            ->redirect();
-    }
-
+    // ================= AUTH =================
     public function redirectLogin()
     {
-        session(['auth_type' => 'login']);
+        session(['auth_mode' => 'login']);
 
         return Socialite::driver('google')
-            ->scopes([
-                'openid',
-                'email',
-                'profile',
-                'https://www.googleapis.com/auth/drive.file',
-            ])
-            ->with([
-                'access_type' => 'offline',
-            ])
+            ->scopes($this->scopes())
+            ->with(['access_type' => 'offline'])
             ->redirect();
     }
 
     public function redirectRegister()
     {
-        session(['auth_type' => 'register']);
+        session(['auth_mode' => 'register_user']);
 
         return Socialite::driver('google')
-            ->scopes([
-                'openid',
-                'email',
-                'profile',
-                'https://www.googleapis.com/auth/drive.file',
-            ])
+            ->scopes($this->scopes())
             ->with([
                 'access_type' => 'offline',
                 'prompt' => 'consent',
@@ -95,218 +49,263 @@ class GoogleController extends Controller
             ->redirect();
     }
 
-    // buat folder "E-Letter UNLA" di drive user, return folder id
-    private function createDriveFolder($accessToken)
+    public function redirectUnit()
     {
-        $client = new Google_Client();
-        $client->setClientId(config('services.google.client_id'));
-        $client->setClientSecret(config('services.google.client_secret'));
-        $client->setAccessToken($accessToken);
+        session(['auth_mode' => 'register_unit']);
+        session()->save();
 
-        $service = new Google_Service_Drive($client);
-
-        $folderMetadata = new \Google_Service_Drive_DriveFile([
-            'name'     => 'E-Letter UNLA',
-            'mimeType' => 'application/vnd.google-apps.folder',
-        ]);
-
-        $folder = $service->files->create($folderMetadata, [
-            'fields' => 'id',
-        ]);
-
-        return $folder->id;
+        return Socialite::driver('google')
+            ->scopes($this->scopes())
+            ->with([
+                'access_type' => 'offline',
+                'prompt' => 'consent',
+            ])
+            ->redirect();
     }
 
-    public function callback()
+    public function callback(Request $request)
     {
-        try {
-            $socialUser = Socialite::driver('google')->user();
-        } catch (\Exception $e) {
-            return redirect('/')
-                ->with('error', 'Autentikasi Google gagal. Silakan coba lagi.');
-        }
+        $socialUser = Socialite::driver('google')->user();
+        $mode = session('auth_mode');
+        session()->forget('auth_mode');
 
-        $authType = session('auth_type');
-        $user = User::where('email', $socialUser->email)->first();
+        $email = $socialUser->email;
 
+        // token data
         $tokenData = [
-            'google_access_token' => json_encode($socialUser->token),
-            'google_token_expires_at' => now()->addSeconds(
-                $socialUser->expiresIn ?? 3600
-            ),
+            'google_access_token' => json_encode([
+                'access_token'  => $socialUser->token,
+                'refresh_token' => $socialUser->refreshToken,
+                'expires_in'    => $socialUser->expiresIn ?? 3600,
+                'created'       => time(),
+            ]),
+            'google_refresh_token' => $socialUser->refreshToken,
+            'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
         ];
 
-        if (!empty($socialUser->refreshToken)) {
-            $tokenData['google_refresh_token'] =
-                $socialUser->refreshToken;
+        if ($mode === 'register_unit') {
+            return $this->registerUnit($email, $tokenData);
         }
 
-        if ($authType === 'register') {
-
-            if ($user) {
-                session()->forget('auth_type');
-
-                return redirect('/')
-                    ->with(
-                        'error',
-                        'Akun sudah terdaftar. Silakan login.'
-                    );
-            }
-
-            $folderId = $this->createDriveFolder(
-                json_decode(
-                    $tokenData['google_access_token'],
-                    true
-                )
-            );
-
-            User::create([
-                'name' => $socialUser->name,
-                'email' => $socialUser->email,
-                'password' => bcrypt(str()->random(16)),
-
-                // default role USER
-                'role_id' => 2,
-
-                // menunggu approval
-                'status' => 0,
-
-                'google_drive_folder_id' => $folderId,
-
-                ...$tokenData,
-            ]);
-
-            session()->forget('auth_type');
-
-            return redirect('/')
-                ->with(
-                    'success',
-                    'Registrasi berhasil. Menunggu verifikasi admin.'
-                );
+        if ($mode === 'register_user') {
+            return $this->registerUser($socialUser, $tokenData);
         }
 
-        if (!$user) {
-            session()->forget('auth_type');
+        return $this->loginUser($email, $socialUser->refreshToken, $tokenData);
+    }
 
-            return redirect('/register')
-                ->with(
-                    'error',
-                    'Akun tidak ditemukan. Silakan daftar terlebih dahulu.'
-                );
-        }
+    private function buildTokenData($socialUser): array
+    {
+        return [
+            'google_access_token' => json_encode([
+                'access_token'  => $socialUser->token,
+                'refresh_token' => $socialUser->refreshToken,
+                'expires_in'    => $socialUser->expiresIn ?? 3600,
+                'created'       => time(),
+            ]),
+            'google_refresh_token' => $socialUser->refreshToken,
+            'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
+        ];
+    }
 
-        if ($user->status != 1) {
-            session()->forget('auth_type');
+    private function registerUnit(string $email, array $tokenData)
+    {
+        $namaUnit = session()->pull('pending_nama_unit');
+        if (!$namaUnit) return back()->with('error', 'Nama unit tidak ditemukan.');
 
-            return redirect('/')
-                ->with(
-                    'error',
-                    'Akun Anda belum diverifikasi admin.'
-                );
-        }
-
-        // kalau folder drive belum ada
-        $folderId = $user->google_drive_folder_id;
-
-        if (!$folderId) {
-            $folderId = $this->createDriveFolder(
-                json_decode(
-                    $tokenData['google_access_token'],
-                    true
-                )
-            );
-        }
-
-        $user->update([
+        $unit = Unit::create([
+            'kode_unit' => 'UNIT-' . strtoupper(Str::random(6)),
+            'nama_unit' => $namaUnit,
+            'email' => $email,
+            'status' => 0,
             ...$tokenData,
-
-            'google_refresh_token' =>
-            $socialUser->refreshToken
-                ?? $user->google_refresh_token,
-
-            'google_drive_folder_id' => $folderId,
         ]);
 
-        session()->forget('auth_type');
+        User::create([
+            'name' => $namaUnit,
+            'email' => $email,
+            'password' => bcrypt(Str::random(16)),
+            'unit_id' => $unit->unit_id,
+            'role_id' => 3,
+            'status' => 0,
+            ...$tokenData,
+        ]);
 
+        return redirect('/')->with('success', 'Unit berhasil didaftarkan');
+    }
+
+    private function registerUser($socialUser, array $tokenData)
+    {
+        if (User::where('email', $socialUser->email)->exists()) {
+            return back()->with('error', 'User sudah ada');
+        }
+
+        User::create([
+            'name' => $socialUser->name,
+            'email' => $socialUser->email,
+            'password' => bcrypt(Str::random(16)),
+            'role_id' => 2,
+            'status' => 0,
+            ...$tokenData,
+        ]);
+
+        return redirect('/')->with('success', 'User berhasil register');
+    }
+
+    private function loginUser(string $email, ?string $refreshToken, array $tokenData)
+    {
+        $user = User::where('email', $email)->first();
+        if (!$user) return redirect('/register')->with('error', 'User belum terdaftar');
+        if ($user->status != 1) return back()->with('error', 'Akun belum aktif');
+
+        $user->update(array_merge(
+            $tokenData,
+            [
+                'google_refresh_token' => $refreshToken ?? $user->google_refresh_token
+            ]
+        ));
         Auth::login($user);
 
         return redirect('/dashboard');
     }
 
-    public static function uploadFileToDrive($uploadedFile)
+    public static function uploadFileToDrive($file, string $jenisSurat, string $tanggal)
     {
         $user = auth()->user();
+        $unit = $user->unit;
 
-        if (!$user->google_access_token) {
-            throw new \Exception('Token Google tidak ditemukan. Silakan login ulang dengan Google.');
+        if (!$unit) {
+            throw new \Exception('User belum memiliki unit');
         }
 
-        // refresh token exp
-        if (
-            $user->google_token_expires_at &&
-            now()->greaterThan($user->google_token_expires_at)
-        ) {
-            if (!$user->google_refresh_token) {
-                throw new \Exception('Refresh token tidak ditemukan. Silakan login ulang dengan Google.');
-            }
-
-            $client = new Google_Client();
-            $client->setClientId(config('services.google.client_id'));
-            $client->setClientSecret(config('services.google.client_secret'));
-
-            $client->fetchAccessTokenWithRefreshToken($user->google_refresh_token);
-            $newToken = $client->getAccessToken();
-
-            $user->update([
-                'google_access_token'     => json_encode($newToken),
-                'google_token_expires_at' => now()->addSeconds($newToken['expires_in']),
-            ]);
-
-            $user->refresh();
+        if (!$unit->google_access_token) {
+            throw new \Exception('Token unit Google tidak ditemukan');
         }
 
-        $client = new Google_Client();
-        $client->setClientId(config('services.google.client_id'));
-        $client->setClientSecret(config('services.google.client_secret'));
+        $client = self::getClient($unit);
+        $drive  = new Drive($client);
 
-        $token = self::decodeGoogleToken($user->google_access_token);
-        $client->setAccessToken($token);
+        $rootId = $unit->google_drive_folder_id;
 
-        $service  = new Google_Service_Drive($client);
-        $folderId = $user->google_drive_folder_id;
-
-        if (!$folderId) {
-            throw new \Exception('Folder Google Drive tidak ditemukan. Silakan login ulang dengan Google.');
+        if (!$rootId) {
+            throw new \Exception('Folder unit belum ada');
         }
 
-        $fileMetadata = new \Google_Service_Drive_DriveFile([
-            'name'    => $uploadedFile->getClientOriginalName(),
-            'parents' => [$folderId],
+        $date = \Carbon\Carbon::parse($tanggal);
+
+        $tahun = $date->year;
+
+        $bulan = $date->translatedFormat('F');
+        // Januari, Februari, dst
+
+        $folderJenis = strtolower($jenisSurat) === 'masuk'
+            ? 'Surat Masuk'
+            : 'Surat Keluar';
+
+        // Tahun
+        $yearId = self::getOrCreateFolder(
+            $drive,
+            (string) $tahun,
+            $rootId
+        );
+
+        // Bulan
+        $monthId = self::getOrCreateFolder(
+            $drive,
+            $bulan,
+            $yearId
+        );
+
+        // Surat Masuk / Surat Keluar
+        $targetFolderId = self::getOrCreateFolder(
+            $drive,
+            $folderJenis,
+            $monthId
+        );
+
+        $fileMeta = new DriveFile([
+            'name'    => $file->getClientOriginalName(),
+            'parents' => [$targetFolderId],
         ]);
 
-        $content = file_get_contents($uploadedFile->getRealPath());
-
-        $file = $service->files->create($fileMetadata, [
-            'data'       => $content,
-            'mimeType'   => $uploadedFile->getMimeType(),
+        $uploaded = $drive->files->create($fileMeta, [
+            'data'       => file_get_contents($file->getRealPath()),
+            'mimeType'   => $file->getMimeType(),
             'uploadType' => 'multipart',
-            'fields'     => 'id',
+            'fields'     => 'id, webViewLink',
         ]);
 
-        $permission = new \Google_Service_Drive_Permission([
+        $permission = new Permission([
             'type' => 'anyone',
             'role' => 'reader',
         ]);
 
-        $service->permissions->create(
-            $file->id,
+        $drive->permissions->create(
+            $uploaded->id,
             $permission
         );
 
         return [
-            'file_id' => $file->id,
-            'url'     => 'https://drive.google.com/file/d/' . $file->id . '/view',
+            'file_id' => $uploaded->id,
+            'url'     => $uploaded->webViewLink,
         ];
+    }
+
+    private static function getClient($unit)
+    {
+        $client = new \Google_Client();
+        $client->setClientId(config('services.google.client_id'));
+        $client->setClientSecret(config('services.google.client_secret'));
+
+        $token = json_decode($unit->google_access_token, true);
+        $client->setAccessToken($token);
+
+        if ($client->isAccessTokenExpired()) {
+            if (!$unit->google_refresh_token) {
+                throw new \Exception('Refresh token unit tidak ada, login ulang dulu');
+            }
+            $client->fetchAccessTokenWithRefreshToken($unit->google_refresh_token);
+            $newToken = $client->getAccessToken();
+            $unit->update([
+                'google_access_token' => json_encode($newToken),
+                'google_token_expires_at' => now()->addSeconds($newToken['expires_in']),
+            ]);
+        }
+
+        return $client;
+    }
+
+    private static function getOrCreateFolder(
+        Drive $drive,
+        string $folderName,
+        string $parentId
+    ) {
+        $query =
+            "mimeType='application/vnd.google-apps.folder'
+        and name='{$folderName}'
+        and '{$parentId}' in parents
+        and trashed=false";
+
+        $folders = $drive->files->listFiles([
+            'q' => $query,
+            'fields' => 'files(id,name)',
+        ]);
+
+        if (count($folders->files) > 0) {
+            return $folders->files[0]->id;
+        }
+
+        $folder = $drive->files->create(
+            new DriveFile([
+                'name' => $folderName,
+                'mimeType' => 'application/vnd.google-apps.folder',
+                'parents' => [$parentId],
+            ]),
+            [
+                'fields' => 'id',
+            ]
+        );
+
+        return $folder->id;
     }
 }

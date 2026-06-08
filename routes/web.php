@@ -12,6 +12,7 @@ use App\Livewire\Auth\RegisterUnit;
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\ResetPassword;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\UnitGoogleController;
 
 use App\Livewire\Profile\Profile;
 use App\Livewire\UserManagement\UserManagement;
@@ -33,11 +34,11 @@ Route::get('/register-unit', RegisterUnit::class)->name('register-unit');
 // Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
 // Route::get('/auth/google/{role}',[GoogleController::class, 'redirect'])->name('google.redirect');
 
-Route::get('/auth/google/login',[GoogleController::class, 'redirectLogin'])->name('google.login');
-
-// Route::get('/auth/google/register/{role}',[GoogleController::class, 'redirectRegister'])->name('google.register');
-Route::get('/auth/google/register',[GoogleController::class, 'redirectRegister'])->name('google.register');
-Route::get('/auth/google/callback',[GoogleController::class, 'callback'])->name('google.callback');
+Route::get('/auth/google/login', [GoogleController::class, 'redirectLogin'])->name('google.login');
+Route::get('/auth/google/register', [GoogleController::class, 'redirectRegister'])->name('google.register');
+Route::get('/auth/google/unit', [GoogleController::class, 'redirectUnit'])->name('google.unit');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
 Route::get('/forgot-password', ForgotPassword::class)->name('password.request');
 Route::get('/reset-password/{email}', ResetPassword::class)->name('password.reset');
@@ -51,7 +52,7 @@ Route::post('/logout', function (Request $request) {
 
     return redirect('/');
 })
-->name('logout');
+    ->name('logout');
 
 // waiting approval page
 Route::middleware('auth')->group(function () {

@@ -3,9 +3,14 @@
 namespace App\Livewire\UnitManagement;
 
 use App\Models\Unit;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Str;
 use Livewire\Attributes\On;
+use Google\Client;
+use Google\Service\Drive;
+use Google\Service\Drive\DriveFile;
 
 class UnitManagement extends Component
 {
@@ -36,14 +41,13 @@ class UnitManagement extends Component
                 'email'     => 'nullable|email|max:255|unique:unit,email,' . $this->unitId . ',unit_id',
                 'status'    => 'required|in:0,1',
             ];
-        } else {
-            return [
-                'kode_unit' => 'required|string|max:50|unique:unit,kode_unit',
-                'nama_unit' => 'required|string|max:255',
-                'email'     => 'nullable|email|max:255|unique:unit,email',
-                'status'    => 'required|in:0,1',
-            ];
         }
+
+        return [
+            'nama_unit' => 'required|string|max:255',
+            'email'     => 'nullable|email|max:255|unique:unit,email',
+            'status'    => 'required|in:0,1',
+        ];
     }
 
     public function render()
@@ -92,31 +96,27 @@ class UnitManagement extends Component
 
     public function save()
     {
-        $messages = [
-            'kode_unit.required' => 'Kode unit wajib diisi.',
-            'kode_unit.unique'   => 'Kode unit sudah digunakan.',
-            'nama_unit.required' => 'Nama unit wajib diisi.',
-            'email.email'        => 'Format email tidak valid.',
-            'email.unique'       => 'Email sudah terdaftar.',
-            'status.in'          => 'Status tidak valid.',
+        $this->validate($this->rules());
+
+        $data = [
+            'nama_unit' => $this->nama_unit,
+            'email'     => $this->email,
+            'status'    => $this->status,
         ];
 
-        $this->validate($this->rules(), $messages);
+        // hanya generate saat tambah
+        if (!$this->unitId) {
+            $data['kode_unit'] = 'UNIT-' . strtoupper(Str::random(6));
+        }
 
         $unit = Unit::updateOrCreate(
             ['unit_id' => $this->unitId],
-            [
-                'kode_unit' => $this->kode_unit,
-                'nama_unit' => $this->nama_unit,
-                'status'    => $this->status,
-            ]
+            $data
         );
 
-        // update email akun unit
         if ($unit->user) {
-
             $unit->user->update([
-                'email' => $this->email,
+                'email'  => $this->email,
                 'status' => $this->status,
             ]);
         }
@@ -173,16 +173,83 @@ class UnitManagement extends Component
 
     public function approve($unitId)
     {
-        $unit = Unit::find($unitId);
+        $unit = Unit::findOrFail($unitId);
 
-        if (!$unit) {
-            session()->flash('error', 'Unit tidak ditemukan.');
-            return;
+        try {
+            $tokenData = json_decode($unit->google_access_token, true);
+
+            $client = new Client();
+            $client->setClientId(config('services.google.client_id'));
+            $client->setClientSecret(config('services.google.client_secret'));
+
+            // Set token & refresh jika expired
+            $client->setAccessToken([
+                'access_token'  => $tokenData['access_token'],
+                'refresh_token' => $unit->google_refresh_token,
+                'expires_in'    => $tokenData['expires_in'] ?? 3600,
+                'created'       => $tokenData['created'] ?? time(),
+            ]);
+
+            if ($client->isAccessTokenExpired()) {
+                $newToken = $client->fetchAccessTokenWithRefreshToken($unit->google_refresh_token);
+                $unit->update([
+                    'google_access_token'     => json_encode($newToken),
+                    'google_token_expires_at' => now()->addSeconds($newToken['expires_in'] ?? 3600),
+                ]);
+            }
+
+            $drive = new Drive($client);
+
+            // Helper buat ambil atau buat folder
+            $getOrCreateFolder = function (string $name, ?string $parentId = null) use ($drive) {
+                $query = "mimeType='application/vnd.google-apps.folder' and name='{$name}'";
+                if ($parentId) $query .= " and '{$parentId}' in parents";
+
+                $folders = $drive->files->listFiles([
+                    'q' => $query,
+                    'fields' => 'files(id, name)'
+                ]);
+
+                if (count($folders->files) > 0) return $folders->files[0]->id;
+
+                $meta = new DriveFile([
+                    'name' => $name,
+                    'mimeType' => 'application/vnd.google-apps.folder',
+                    'parents' => $parentId ? [$parentId] : [],
+                ]);
+
+                return $drive->files->create($meta, ['fields' => 'id'])->id;
+            };
+
+            // Struktur folder: E-Letter - Unit > Tahun > Bulan > Surat Masuk / Surat Keluar
+            $rootId  = $getOrCreateFolder('E-Letter - ' . $unit->nama_unit);
+            $yearId  = $getOrCreateFolder((string) now()->year, $rootId);
+            $monthId = $getOrCreateFolder(now()->format('F'), $yearId);
+            $getOrCreateFolder('Surat Masuk', $monthId);
+            $getOrCreateFolder('Surat Keluar', $monthId);
+
+            // Simpan root folder ke unit
+            $unit->update([
+                'google_drive_folder_id' => $rootId,
+                'status'                 => 1, // approve
+            ]);
+        } catch (\Exception $e) {
+            // Tetap approve, tapi catat error
+            $unit->update(['status' => 1]);
+            \Log::error("Gagal membuat folder Drive untuk unit {$unit->unit_id}: {$e->getMessage()}");
         }
 
-        $unit->status = 1;
-        $unit->save();
+        // Aktifkan semua user yang terkait dengan unit
+        User::where('unit_id', $unitId)->update(['status' => 1]);
 
-        session()->flash('message', "Unit {$unit->nama_unit} berhasil di-approve!");
+        return back()->with('success', "Unit {$unit->nama_unit} berhasil diaktifkan.");
+    }
+
+    public function rejectUnit($unitId)
+    {
+        Unit::where('unit_id', $unitId)->update(['status' => 2]);
+        User::where('unit_id', $unitId)->update(['status' => 2]);
+
+        return back()->with('success', 'Unit berhasil ditolak.');
     }
 }

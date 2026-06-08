@@ -58,17 +58,20 @@
                         <div class="flex items-center gap-2">
                             Nama
                             @if ($sortField === 'name')
-                                <i class="fi {{ $sortDirection === 'asc' ? 'fi-rr-sort-up' : 'fi-rr-sort-down' }} text-xs text-blue-500"></i>
+                                <i
+                                    class="fi {{ $sortDirection === 'asc' ? 'fi-rr-sort-up' : 'fi-rr-sort-down' }} text-xs text-blue-500"></i>
                             @else
                                 <i class="fi fi-rr-sort text-xs text-gray-400"></i>
                             @endif
                         </div>
                     </th>
-                    <th class="p-3 text-left hidden sm:table-cell cursor-pointer select-none" wire:click="sortBy('email')">
+                    <th class="p-3 text-left hidden sm:table-cell cursor-pointer select-none"
+                        wire:click="sortBy('email')">
                         <div class="flex items-center gap-2">
                             Email
                             @if ($sortField === 'email')
-                                <i class="fi {{ $sortDirection === 'asc' ? 'fi-rr-sort-up' : 'fi-rr-sort-down' }} text-xs text-blue-500"></i>
+                                <i
+                                    class="fi {{ $sortDirection === 'asc' ? 'fi-rr-sort-up' : 'fi-rr-sort-down' }} text-xs text-blue-500"></i>
                             @else
                                 <i class="fi fi-rr-sort text-xs text-gray-400"></i>
                             @endif
@@ -78,7 +81,8 @@
                         <div class="flex items-center gap-2">
                             Unit
                             @if ($sortField === 'unit')
-                                <i class="fi {{ $sortDirection === 'asc' ? 'fi-rr-sort-up' : 'fi-rr-sort-down' }} text-xs text-blue-500"></i>
+                                <i
+                                    class="fi {{ $sortDirection === 'asc' ? 'fi-rr-sort-up' : 'fi-rr-sort-down' }} text-xs text-blue-500"></i>
                             @else
                                 <i class="fi fi-rr-sort text-xs text-gray-400"></i>
                             @endif
@@ -110,7 +114,8 @@
                         </td>
 
                         <td class="p-3">
-                            <span class="px-2 py-1 rounded-full text-xs
+                            <span
+                                class="px-2 py-1 rounded-full text-xs
                                 {{ ($user->role?->name ?? '-') === 'Admin'
                                     ? 'bg-red-100 text-red-700'
                                     : (($user->role?->name ?? '-') === 'User'
@@ -139,7 +144,7 @@
                                     <select wire:model.live="selectedRole.{{ $user->id }}"
                                         class="rounded-xl border border-gray-300 px-3 py-2 text-sm">
                                         <option value="">Pilih Role</option>
-                                        @foreach ($roles->whereIn('id', [1, 2]) as $role)
+                                        @foreach ($roles->whereIn('id', [1, 2, 3]) as $role)
                                             <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
                                         @endforeach
                                     </select>
@@ -253,12 +258,13 @@
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-gray-700">Role</label>
-                            <select wire:model="role"
-                                class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500
-                                       focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
-                                <option value="">-- Pilih Role --</option>
-                                @foreach ($roles->whereIn('id', [1, 2]) as $role)
-                                    <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                            <select wire:model="selectedRole.{{ $user->id }}">
+                                <option value="">Pilih Role</option>
+
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role->id }}">
+                                        {{ $role->name }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('role')

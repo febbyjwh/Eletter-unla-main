@@ -9,18 +9,21 @@ class Unit extends Authenticatable
     protected $table = 'unit';
     protected $primaryKey = 'unit_id';
 
+    // App/Models/Unit.php
     protected $fillable = [
         'kode_unit',
         'nama_unit',
         'email',
-        'google_drive_folder_id',
         'status',
-        'password'
+        'google_access_token',   
+        'google_refresh_token',  
+        'google_token_expires_at',
+        'google_drive_folder_id',
     ];
 
     protected $hidden = [
         'password',
-        'remember_token', // opsional tapi direkomendasikan
+        'remember_token',
     ];
 
     public function user()

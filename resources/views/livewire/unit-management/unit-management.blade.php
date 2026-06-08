@@ -65,7 +65,7 @@
                         <td class="p-3">{{ $units->firstItem() + $index }}</td>
                         <td class="p-3 font-medium text-gray-800">{{ $unit->kode_unit }}</td>
                         <td class="p-3 text-gray-700">{{ $unit->nama_unit }}</td>
-                        <td class="p-3 text-gray-500">{{ $unit->user?->email ?? '-' }}</td>
+                        <td class="p-3 text-gray-500">{{ $unit->email }}</td>
                         <td class="p-3">
                             @if ($unit->status == 1)
                                 <span
@@ -150,14 +150,14 @@
                 <!-- Body -->
                 <div class="p-6 space-y-4">
 
-                    <div>
+                    {{-- <div>
                         <label class="mb-2 block text-sm font-medium text-gray-700">Kode Unit</label>
                         <input wire:model="kode_unit" placeholder="Masukkan kode unit"
                             class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
                         @error('kode_unit')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
                         @enderror
-                    </div>
+                    </div> --}}
 
                     <div>
                         <label class="mb-2 block text-sm font-medium text-gray-700">Nama Unit</label>

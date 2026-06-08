@@ -13,22 +13,16 @@ return new class extends Migration
     {
         Schema::create('unit', function (Blueprint $table) {
             $table->id('unit_id');
-
             $table->string('kode_unit')->unique();
             $table->string('nama_unit');
-
-            // Folder Google Drive milik unit
+            $table->string('email')->unique();
             $table->string('google_drive_folder_id')->nullable();
-
-            // Token Google milik unit
             $table->longText('google_access_token')->nullable();
             $table->longText('google_refresh_token')->nullable();
             $table->timestamp('google_token_expires_at')->nullable();
-
             $table->tinyInteger('status')
                 ->default(0)
                 ->comment('0=pending, 1=aktif, 2=ditolak');
-
             $table->timestamps();
         });
     }

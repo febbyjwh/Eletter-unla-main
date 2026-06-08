@@ -25,13 +25,25 @@ class Register extends Component
         ]);
 
         User::create([
-            'email' => $this->email,
             'name' => explode('@', $this->email)[0],
+            'email' => $this->email,
             'password' => bcrypt($this->password),
-            'status' => 0, // nunggu approve
+
+            'role_id' => 2, // user
+            'status' => 0,  // pending
         ]);
 
-        session()->flash('success', 'Registrasi berhasil, tunggu approval admin.');
+        session()->flash(
+            'success',
+            'Registrasi berhasil. Menunggu approval admin.'
+        );
+
+        $this->reset();
+    }
+
+    public function redirectToGoogle()
+    {
+        return redirect()->route('google.register');
     }
 
     public function togglePassword()
@@ -70,11 +82,6 @@ class Register extends Component
         session()->flash('success', 'Akun berhasil dibuat. Tunggu persetujuan admin.');
 
         $this->reset(['name', 'email', 'password', 'password_confirmation']);
-    }
-
-    public function redirectToGoogle()
-    {
-        return redirect()->route('google.register');
     }
 
     public function render()

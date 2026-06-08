@@ -3,51 +3,24 @@
 namespace App\Livewire\Auth;
 
 use Livewire\Component;
-use App\Models\Unit;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Password;
 
 class RegisterUnit extends Component
 {
-    public $email;
-    public $nama_unit;
-    public $password;
+    public string $nama_unit = '';
 
     protected $rules = [
-        'email' => 'required|email|unique:users,email',
-        'nama_unit' => 'required|string|max:255',
-        'password' => 'required|string|min:8',
+        'nama_unit' => 'required|string|min:3|max:255',
     ];
 
-    public function register()
+    public function redirectToGoogle()
     {
-        $validated = $this->validate();
+        $this->validate();
 
-        DB::transaction(function () use ($validated) {
+        // Simpan ke session dan paksa save sebelum redirect
+        session(['pending_nama_unit' => trim($this->nama_unit)]);
+        session()->save(); 
 
-            $unit = Unit::create([
-                'kode_unit' => 'UNIT-' . strtoupper(Str::random(6)),
-                'nama_unit' => $validated['nama_unit'],
-                'status' => 0,
-            ]);
-
-            User::create([
-                'name' => $validated['nama_unit'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role_id' => 3,
-                'unit_id' => $unit->id,
-                'status' => 0,
-            ]);
-        });
-
-        session()->flash(
-            'success',
-            'Pendaftaran unit berhasil. Menunggu approval admin.'
-        );
+        return redirect()->route('google.unit');
     }
 
     public function render()
