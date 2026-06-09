@@ -8,7 +8,7 @@
     @if (session()->has('message'))
         <div
             class="bg-green-50 text-green-700 px-4 py-2 rounded-2xl mb-4 shadow-sm border border-green-200 text-sm sm:text-base">
-            ✅ {{ session('message') }}
+            {{ session('message') }}
         </div>
     @endif
 
@@ -89,7 +89,7 @@
                             <div class="flex items-center gap-2">
 
                                 @if ($unit->status == 0)
-                                    <button wire:click="approve({{ $unit->unit_id }})"
+                                    <button wire:click="approve({{ $unit->unit_id }})" wire:loading.attr="disabled"
                                         class="px-3 py-1.5 text-xs bg-green-500 text-white rounded-xl hover:bg-green-600 transition duration-200">
                                         <i class="fi fi-rr-check"></i> Approve
                                     </button>
@@ -203,6 +203,17 @@
         </div>
     @endif
 
+    <div wire:loading.flex class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 items-center justify-center">
+        <div class="bg-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3">
+            <svg class="w-5 h-5 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                </circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <span class="text-sm text-gray-700">Sedang memproses...</span>
+        </div>
+    </div>
 </div>
 
 <script>

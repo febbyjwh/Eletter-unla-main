@@ -34,18 +34,14 @@ class UnitManagement extends Component
 
     protected function rules()
     {
-        if ($this->unitId) {
-            return [
-                'kode_unit' => 'required|string|max:50|unique:unit,kode_unit,' . $this->unitId . ',unit_id',
-                'nama_unit' => 'required|string|max:255',
-                'email'     => 'nullable|email|max:255|unique:unit,email,' . $this->unitId . ',unit_id',
-                'status'    => 'required|in:0,1',
-            ];
-        }
-
         return [
-            'nama_unit' => 'required|string|max:255',
-            'email'     => 'nullable|email|max:255|unique:unit,email',
+            'kode_unit' => $this->unitId
+                ? 'nullable|string|max:50|unique:unit,kode_unit,' . $this->unitId . ',unit_id'
+                : 'nullable|string|max:50|unique:unit,kode_unit',
+            'nama_unit' => 'nullable|string|max:255',
+            'email'     => $this->unitId
+                ? 'nullable|email|max:255|unique:unit,email,' . $this->unitId . ',unit_id'
+                : 'nullable|email|max:255|unique:unit,email',
             'status'    => 'required|in:0,1',
         ];
     }
@@ -173,7 +169,7 @@ class UnitManagement extends Component
 
     public function approve($unitId)
     {
-        $unit = Unit::findOrFail($unitId);
+        $unit = Unit::where('unit_id', $unitId)->firstOrFail();
 
         try {
             $tokenData = json_decode($unit->google_access_token, true);
@@ -182,7 +178,6 @@ class UnitManagement extends Component
             $client->setClientId(config('services.google.client_id'));
             $client->setClientSecret(config('services.google.client_secret'));
 
-            // Set token & refresh jika expired
             $client->setAccessToken([
                 'access_token'  => $tokenData['access_token'],
                 'refresh_token' => $unit->google_refresh_token,
@@ -192,25 +187,31 @@ class UnitManagement extends Component
 
             if ($client->isAccessTokenExpired()) {
                 $newToken = $client->fetchAccessTokenWithRefreshToken($unit->google_refresh_token);
+
                 $unit->update([
-                    'google_access_token'     => json_encode($newToken),
+                    'google_access_token' => json_encode($newToken),
                     'google_token_expires_at' => now()->addSeconds($newToken['expires_in'] ?? 3600),
                 ]);
             }
 
             $drive = new Drive($client);
 
-            // Helper buat ambil atau buat folder
-            $getOrCreateFolder = function (string $name, ?string $parentId = null) use ($drive) {
-                $query = "mimeType='application/vnd.google-apps.folder' and name='{$name}'";
-                if ($parentId) $query .= " and '{$parentId}' in parents";
+            // helper aman
+            $getOrCreateFolder = function ($name, $parentId = null) use ($drive) {
+                $q = "mimeType='application/vnd.google-apps.folder' and name='{$name}' and trashed=false";
 
-                $folders = $drive->files->listFiles([
-                    'q' => $query,
-                    'fields' => 'files(id, name)'
+                if ($parentId) {
+                    $q .= " and '{$parentId}' in parents";
+                }
+
+                $files = $drive->files->listFiles([
+                    'q' => $q,
+                    'fields' => 'files(id,name)'
                 ]);
 
-                if (count($folders->files) > 0) return $folders->files[0]->id;
+                if (count($files->files)) {
+                    return $files->files[0]->id;
+                }
 
                 $meta = new DriveFile([
                     'name' => $name,
@@ -221,25 +222,30 @@ class UnitManagement extends Component
                 return $drive->files->create($meta, ['fields' => 'id'])->id;
             };
 
-            // Struktur folder: E-Letter - Unit > Tahun > Bulan > Surat Masuk / Surat Keluar
-            $rootId  = $getOrCreateFolder('E-Letter - ' . $unit->nama_unit);
+            // ROOT
+            $rootId = $getOrCreateFolder('E-Letter - ' . $unit->nama_unit);
+
+            // safe check
+            if (!$rootId) {
+                throw new \Exception('Root folder gagal dibuat');
+            }
+
             $yearId  = $getOrCreateFolder((string) now()->year, $rootId);
-            $monthId = $getOrCreateFolder(now()->format('F'), $yearId);
+            $monthId = $getOrCreateFolder(now()->translatedFormat('F'), $yearId);
+
             $getOrCreateFolder('Surat Masuk', $monthId);
             $getOrCreateFolder('Surat Keluar', $monthId);
 
-            // Simpan root folder ke unit
             $unit->update([
                 'google_drive_folder_id' => $rootId,
-                'status'                 => 1, // approve
+                'status' => 1,
             ]);
-        } catch (\Exception $e) {
-            // Tetap approve, tapi catat error
+        } catch (\Throwable $e) {
+            \Log::error($e->getMessage());
+
             $unit->update(['status' => 1]);
-            \Log::error("Gagal membuat folder Drive untuk unit {$unit->unit_id}: {$e->getMessage()}");
         }
 
-        // Aktifkan semua user yang terkait dengan unit
         User::where('unit_id', $unitId)->update(['status' => 1]);
 
         return back()->with('success', "Unit {$unit->nama_unit} berhasil diaktifkan.");

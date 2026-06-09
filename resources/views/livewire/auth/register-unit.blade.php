@@ -164,6 +164,43 @@
             text-underline-offset: 4px;
         }
 
+        .register-input-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .register-input-wrap label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .register-input-wrap input {
+            width: 100%;
+            height: 48px;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            padding: 0 14px;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            transition: all .18s ease;
+            background: #f9fafb;
+        }
+
+        .register-input-wrap input:focus {
+            border-color: #3156d3;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(49, 86, 211, .12);
+        }
+
+        .input-error {
+            font-size: 12px;
+            color: #dc2626;
+            font-weight: 600;
+        }
+
         /* RIGHT PANEL */
         .register-right {
             display: flex;
@@ -438,7 +475,7 @@
 
                 <div class="register-input-wrap">
                     <label for="nama_unit">Nama Unit</label>
-                    <input type="text" id="nama_unit" wire:model="nama_unit" placeholder="Contoh: Fakultas Teknik"
+                    <input type="text" id="nama_unit" wire:model="nama_unit" placeholder="Contoh: P3TI"
                         autocomplete="off">
                     @error('nama_unit')
                         <div class="input-error">{{ $message }}</div>
@@ -446,7 +483,7 @@
                 </div>
 
                 <button type="button" wire:click="redirectToGoogle"
-                    class="register-google-btn w-full transition hover:brightness-110" <svg viewBox="0 0 24 24"
+                    class="register-google-btn w-full transition hover:brightness-110"
                     fill="currentColor" class="w-3 h-3">
                     <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

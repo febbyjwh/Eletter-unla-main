@@ -14,7 +14,7 @@ class UserManagement extends Component
     use WithPagination;
 
     // Form fields
-    public $name, $email, $unit_id, $password, $role, $userId;
+    public $name, $email, $unit_id, $password, $role_id, $userId;
     public $isEdit = false;
     public $showModal = false;
 
@@ -113,7 +113,7 @@ class UserManagement extends Component
             $this->name = $user->name;
             $this->email = $user->email;
             $this->unit_id = $user->unit_id;
-            $this->role = $user->role_id;
+            $this->role_id = $user->role_id;
         }
 
         $this->showModal = true;
@@ -140,7 +140,7 @@ class UserManagement extends Component
         $this->email = '';
         $this->unit_id = '';
         $this->password = '';
-        $this->role = '';
+        $this->role_id = '';
         $this->userId = null;
         $this->isEdit = false;
     }
@@ -174,15 +174,15 @@ class UserManagement extends Component
             'email' => 'required|email|unique:users,email',
             'unit_id' => 'nullable|exists:unit,unit_id',
             'password' => 'required|min:6',
-            'role' => 'required'
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         $user = User::create([
             'name' => $this->name,
             'email' => $this->email,
-            'unit_id' => $this->unit_id,
+            'unit_id' => $this->unit_id ?: null,
             'password' => Hash::make($this->password),
-            'role_id' => $this->role,
+            'role_id' => $this->role_id,
             'status' => 0,
         ]);
         // dd($user->toArray());
@@ -198,15 +198,15 @@ class UserManagement extends Component
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users,email,' . $this->userId,
             'unit_id' => 'nullable|exists:unit,unit_id',
-            'role' => 'required',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         $user = User::findOrFail($this->userId);
         $user->update([
             'name' => $this->name,
             'email' => $this->email,
-            'unit_id' => $this->unit_id,
-            'role_id' => $this->role,
+            'unit_id' => $this->unit_id ?: null,
+            'role_id' => $this->role_id,
             'password' => $this->password ? Hash::make($this->password) : $user->password,
         ]);
 

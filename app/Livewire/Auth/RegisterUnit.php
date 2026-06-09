@@ -16,7 +16,7 @@ class RegisterUnit extends Component
     {
         $this->validate();
 
-        // Simpan ke session dan paksa save sebelum redirect
+        // Simpan ke session
         session(['pending_nama_unit' => trim($this->nama_unit)]);
         session()->save(); 
 

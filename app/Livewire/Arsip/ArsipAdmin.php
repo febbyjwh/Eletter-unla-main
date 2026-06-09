@@ -81,21 +81,31 @@ class ArsipAdmin extends Component
             return;
         }
 
+        $pengirim = auth()->user();
+
+        $penerimaUser = \App\Models\User::where('email', $this->penerima)->first();
+
         $data = [
             'jenis_surat' => $this->jenis_surat,
             'no_surat' => $this->no_surat,
             'pengirim' => $this->pengirim,
             'penerima' => $this->penerima,
+            'pengirim_user_id' => $pengirim->id,
+            'pengirim_unit_id' => $pengirim->unit_id,
+            'penerima_user_id' => $penerimaUser?->id,
+            'penerima_unit_id' => $penerimaUser?->unit_id,
             'perihal' => $this->perihal,
             'tanggal' => $this->tanggal,
             'file_surat' => $filePath,
         ];
-
         if ($this->isEdit) {
             $this->arsipQuery()->findOrFail($this->arsipId)->update($data);
         } else {
             Arsip::create(array_merge($data, [
                 'user_id' => auth()->id(),
+                'unit_id' => auth()->user()->unit_id,
+                'unit_pengirim_id' => auth()->user()->unit_id,
+                'unit_penerima_id' => auth()->user()->unit_id,
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
                 'created_role_id' => auth()->user()->role_id,
@@ -174,13 +184,24 @@ class ArsipAdmin extends Component
 
     protected function arsipQuery()
     {
+        $user = auth()->user();
+
         $query = Arsip::query();
 
-        if (auth()->user()->role_id != 1) {
-            $query->where('user_id', auth()->id());
+        if ($user->role_id == 1) {
+            return $query->orderBy('tanggal', 'desc');
         }
 
-        return $query;
+        if ($user->role_id == 3) {
+            $query->where(function ($q) use ($user) {
+                $q->where('unit_pengirim_id', $user->unit_id)
+                    ->orWhere('unit_penerima_id', $user->unit_id);
+            });
+            return $query->orderBy('tanggal', 'desc');
+        }
+
+        return $query->where('user_id', $user->id)
+            ->orderBy('tanggal', 'desc');
     }
 
     public function render()

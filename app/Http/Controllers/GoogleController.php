@@ -25,7 +25,6 @@ class GoogleController extends Controller
         ];
     }
 
-    // ================= AUTH =================
     public function redirectLogin()
     {
         session(['auth_mode' => 'login']);
@@ -44,7 +43,7 @@ class GoogleController extends Controller
             ->scopes($this->scopes())
             ->with([
                 'access_type' => 'offline',
-                'prompt' => 'consent',
+                // 'prompt' => 'consent',
             ])
             ->redirect();
     }
@@ -94,24 +93,10 @@ class GoogleController extends Controller
         return $this->loginUser($email, $socialUser->refreshToken, $tokenData);
     }
 
-    private function buildTokenData($socialUser): array
-    {
-        return [
-            'google_access_token' => json_encode([
-                'access_token'  => $socialUser->token,
-                'refresh_token' => $socialUser->refreshToken,
-                'expires_in'    => $socialUser->expiresIn ?? 3600,
-                'created'       => time(),
-            ]),
-            'google_refresh_token' => $socialUser->refreshToken,
-            'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
-        ];
-    }
-
     private function registerUnit(string $email, array $tokenData)
     {
         $namaUnit = session()->pull('pending_nama_unit');
-        if (!$namaUnit) return back()->with('error', 'Nama unit tidak ditemukan.');
+        if (!$namaUnit) return back()->with('error', 'Nama unit tidak ditemukan. Silakan isi nama unit sebelum melanjutkan.');
 
         $unit = Unit::create([
             'kode_unit' => 'UNIT-' . strtoupper(Str::random(6)),
@@ -131,13 +116,13 @@ class GoogleController extends Controller
             ...$tokenData,
         ]);
 
-        return redirect('/')->with('success', 'Unit berhasil didaftarkan');
+        return redirect('/')->with('success', 'Unit anda berhasil didaftarkan. Silahkan tunggu verifikasi dari administrator.');
     }
 
     private function registerUser($socialUser, array $tokenData)
     {
         if (User::where('email', $socialUser->email)->exists()) {
-            return back()->with('error', 'User sudah ada');
+            return back()->with('error', 'Alamat email ini sudah terdaftar pada sistem. Silakan login atau gunakan email lain.');
         }
 
         User::create([
@@ -149,14 +134,14 @@ class GoogleController extends Controller
             ...$tokenData,
         ]);
 
-        return redirect('/')->with('success', 'User berhasil register');
+        return redirect('/')->with('success', 'User berhasil register. Silahkan tunggu verifikasi dari administrator');
     }
 
     private function loginUser(string $email, ?string $refreshToken, array $tokenData)
     {
         $user = User::where('email', $email)->first();
-        if (!$user) return redirect('/register')->with('error', 'User belum terdaftar');
-        if ($user->status != 1) return back()->with('error', 'Akun belum aktif');
+        if (!$user) return redirect('/register')->with('error', 'Akun dengan email ini belum terdaftar. Silakan melakukan registrasi terlebih dahulu.');
+        if ($user->status != 1) return back()->with('error', 'Akun Anda belum aktif. Silakan hubungi administrator untuk proses aktivasi.');
 
         $user->update(array_merge(
             $tokenData,
@@ -175,7 +160,7 @@ class GoogleController extends Controller
         $unit = $user->unit;
 
         if (!$unit) {
-            throw new \Exception('User belum memiliki unit');
+            throw new \Exception('Akun Anda belum terhubung dengan unit. Silakan hubungi administrator untuk proses aktivasi unit.');
         }
 
         if (!$unit->google_access_token) {

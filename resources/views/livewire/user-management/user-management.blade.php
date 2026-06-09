@@ -141,13 +141,22 @@
                             <div class="flex flex-wrap items-center gap-2">
 
                                 @if ($user->status == 0)
-                                    <select wire:model.live="selectedRole.{{ $user->id }}"
-                                        class="rounded-xl border border-gray-300 px-3 py-2 text-sm">
-                                        <option value="">Pilih Role</option>
-                                        @foreach ($roles->whereIn('id', [1, 2, 3]) as $role)
-                                            <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="relative">
+                                        <select wire:model.live="selectedRole.{{ $user->id }}"
+                                            class="appearance-none rounded-xl border border-gray-200 bg-white
+               pl-3 pr-8 py-1.5 text-xs text-gray-700
+               focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none
+               cursor-pointer transition">
+                                            <option value="">Pilih role</option>
+                                            @foreach ($roles->whereIn('id', [1, 2, 3]) as $role)
+                                                <option value="{{ $role->id }}">{{ ucfirst($role->name) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                                            <i class="fi fi-rr-angle-small-down text-gray-400 text-xs"></i>
+                                        </div>
+                                    </div>
 
                                     <button type="button" wire:click="approve({{ $user->id }})"
                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs
@@ -258,15 +267,21 @@
 
                         <div>
                             <label class="mb-2 block text-sm font-medium text-gray-700">Role</label>
-                            <select wire:model="selectedRole.{{ $user->id }}">
-                                <option value="">Pilih Role</option>
-
-                                @foreach ($roles as $role)
-                                    <option value="{{ $role->id }}">
-                                        {{ $role->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="relative">
+                                <select wire:model="role_id"
+                                    class="appearance-none w-full rounded-2xl border border-gray-200 bg-gray-50
+                   pl-4 pr-10 py-3 text-sm text-gray-700
+                   focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                   cursor-pointer transition">
+                                    <option value="">Pilih role</option>
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                    <i class="fi fi-rr-angle-small-down text-gray-400 text-sm"></i>
+                                </div>
+                            </div>
                             @error('role')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -308,5 +323,19 @@
             </div>
         </div>
     @endif
+    <div wire:loading.flex wire:target="store,update,delete,aprove"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 items-center justify-center">
 
+        <div class="bg-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3">
+            <svg class="w-5 h-5 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                    stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+
+            <span class="text-sm text-gray-700">
+                Memproses data...
+            </span>
+        </div>
+    </div>
 </div>

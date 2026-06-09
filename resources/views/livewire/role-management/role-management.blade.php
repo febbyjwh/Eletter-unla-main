@@ -4,8 +4,9 @@
     <h2 class="text-lg sm:text-3xl font-bold mb-6 text-gray-800">Manajemen Role</h2>
 
     @if (session()->has('success'))
-        <div class="bg-green-50 text-green-700 px-4 py-2 rounded-2xl mb-4 shadow-sm border border-green-200 text-sm sm:text-base">
-            ✅ {{ session('success') }}
+        <div
+            class="bg-green-50 text-green-700 px-4 py-2 rounded-2xl mb-4 shadow-sm border border-green-200 text-sm sm:text-base">
+            {{ session('success') }}
         </div>
     @endif
 
@@ -72,7 +73,8 @@
                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-400 text-white rounded-xl hover:bg-amber-500 transition duration-200">
                                         <i class="fi fi-rr-pencil leading-none"></i> Edit
                                     </button>
-                                    <button wire:click="confirmDelete({{ $role->id }})"
+                                    <button wire:click="delete({{ $role->id }})" wire:loading.attr="disabled"
+                                        wire:target="delete"
                                         class="px-3 py-1.5 text-xs bg-red-500 text-white rounded-xl hover:bg-red-600 transition duration-200">
                                         <i class="fi fi-rr-trash"></i> Hapus
                                     </button>
@@ -107,9 +109,12 @@
                     <!-- macOS-style header -->
                     <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
                         <div class="flex items-center gap-2">
-                            <button wire:click="closeModal" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition"></button>
-                            <button wire:click="minimize" class="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-500 transition"></button>
-                            <button wire:click="toggleFullscreen" class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition"></button>
+                            <button wire:click="closeModal"
+                                class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition"></button>
+                            <button wire:click="minimize"
+                                class="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-500 transition"></button>
+                            <button wire:click="toggleFullscreen"
+                                class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition"></button>
                         </div>
                         <span class="text-sm font-semibold text-gray-700">
                             {{ $isEdit ? '✏️ Edit Role' : '➕ Tambah Role' }}
@@ -121,7 +126,8 @@
                     <div class="px-6 py-5">
                         <div class="mb-5">
                             <h3 class="text-base font-bold text-gray-800">{{ $isEdit ? 'Edit Role' : 'Tambah Role' }}</h3>
-                            <p class="text-sm text-gray-400 mt-1">{{ $isEdit ? 'Perbarui data role' : 'Tambahkan role baru ke sistem' }}</p>
+                            <p class="text-sm text-gray-400 mt-1">
+                                {{ $isEdit ? 'Perbarui data role' : 'Tambahkan role baru ke sistem' }}</p>
                         </div>
 
                         <form wire:submit.prevent="{{ $isEdit ? 'update' : 'store' }}" class="space-y-4">
@@ -130,14 +136,18 @@
                                 <label class="mb-2 block text-sm font-medium text-gray-700">Nama Role</label>
                                 <input type="text" wire:model="name" placeholder="Masukkan nama role"
                                     class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
-                                @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                @error('name')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
                                 <label class="mb-2 block text-sm font-medium text-gray-700">Deskripsi</label>
                                 <textarea wire:model="description" rows="3" placeholder="Masukkan deskripsi role"
                                     class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition resize-none"></textarea>
-                                @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                @error('description')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="flex justify-end gap-3 border-t border-gray-100 pt-4">
@@ -167,9 +177,12 @@
                     <!-- macOS-style header -->
                     <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
                         <div class="flex items-center gap-2">
-                            <button wire:click="closePermissionModal" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition"></button>
-                            <button wire:click="minimizePermissionModal" class="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-500 transition"></button>
-                            <button wire:click="toggleFullscreenPermission" class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition"></button>
+                            <button wire:click="closePermissionModal"
+                                class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition"></button>
+                            <button wire:click="minimizePermissionModal"
+                                class="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-500 transition"></button>
+                            <button wire:click="toggleFullscreenPermission"
+                                class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition"></button>
                         </div>
                         <span class="text-sm font-semibold text-gray-700">⚙️ Permissions: {{ $roleName }}</span>
                         <div class="w-14"></div>
@@ -185,9 +198,10 @@
                         <form wire:submit.prevent="savePermissions" class="space-y-3">
 
                             @foreach ($allPermissions as $permission)
-                                <label class="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 bg-gray-50 cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition text-sm text-gray-700">
-                                    <input type="checkbox" wire:model="selectedPermissions" value="{{ $permission->id }}"
-                                        class="w-4 h-4 accent-blue-500 cursor-pointer">
+                                <label
+                                    class="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 bg-gray-50 cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition text-sm text-gray-700">
+                                    <input type="checkbox" wire:model="selectedPermissions"
+                                        value="{{ $permission->id }}" class="w-4 h-4 accent-blue-500 cursor-pointer">
                                     {{ $permission->description }}
                                 </label>
                             @endforeach
@@ -209,5 +223,19 @@
             </div>
         @endcan
     @endif
+    <div wire:loading.flex wire:target="store,update,delete"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 items-center justify-center">
 
+        <div class="bg-white px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3">
+            <svg class="w-5 h-5 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                    stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+
+            <span class="text-sm text-gray-700">
+                Memproses data...
+            </span>
+        </div>
+    </div>
 </div>

@@ -9,23 +9,19 @@ class Arsip extends Model
 {
     use HasFactory;
 
-    protected $table = 'arsip'; // atau tetap pakai salah satu tabel jika belum migrate
+    protected $table = 'arsip';
 
     protected $fillable = [
-        // identitas surat
-        'jenis_surat', // masuk / keluar
-
+        'user_id',
+        'unit_pengirim_id',
+        'unit_penerima_id',
+        'jenis_surat',
         'no_surat',
         'pengirim',
         'penerima',
         'perihal',
         'tanggal',
         'file_surat',
-
-        // relasi user
-        'user_id',
-
-        // audit trail
         'created_by',
         'updated_by',
         'created_role_id',
@@ -94,5 +90,15 @@ class Arsip extends Model
     public function scopeKeluar($query)
     {
         return $query->where('jenis_surat', 'keluar');
+    }
+
+    public function unitPengirim()
+    {
+        return $this->belongsTo(Unit::class, 'unit_pengirim_id', 'unit_id');
+    }
+
+    public function unitPenerima()
+    {
+        return $this->belongsTo(Unit::class, 'unit_penerima_id', 'unit_id');
     }
 }
