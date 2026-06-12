@@ -5,7 +5,7 @@
     @if (session()->has('success'))
         <div
             class="bg-green-50 text-green-700 px-4 py-2 rounded-2xl mb-4 shadow-sm border border-green-200 text-sm sm:text-base">
-            ✅ {{ session('success') }}
+            {{ session('success') }}
         </div>
     @endif
 
@@ -148,7 +148,7 @@
                focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none
                cursor-pointer transition">
                                             <option value="">Pilih role</option>
-                                            @foreach ($roles->whereIn('id', [1, 2, 3]) as $role)
+                                            @foreach ($roles->whereIn('id', [1, 2]) as $role)
                                                 <option value="{{ $role->id }}">{{ ucfirst($role->name) }}
                                                 </option>
                                             @endforeach
@@ -167,8 +167,8 @@
                                 @endif
 
                                 <button wire:click="openModal(true, {{ $user->id }})"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs
-                                           bg-amber-400 text-white rounded-xl hover:bg-amber-500 transition duration-200">
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl transition duration-200
+    {{ $user->role_id == 3 ? 'bg-gray-400 text-white' : 'bg-amber-400 text-white hover:bg-amber-500' }}">
                                     <i class="fi fi-rr-pencil leading-none"></i>
                                     Edit
                                 </button>
