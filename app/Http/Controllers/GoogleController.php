@@ -118,20 +118,44 @@ class GoogleController extends Controller
     private function registerUnit($socialUser, array $unitTokenData)
     {
         $namaUnit = session()->pull('pending_nama_unit');
-        if (!$namaUnit) return back()->with('error', 'Nama unit tidak ditemukan. Silakan isi nama unit sebelum melanjutkan.');
 
+        if (!$namaUnit) {
+            return back()->with('error', 'Nama unit tidak ditemukan.');
+        }
+
+        $email = $socialUser->email;
+
+        // 🔴 CHECK USER
+        $user = User::where('email', $email)->first();
+
+        if ($user && $user->role_id == 2) {
+            return redirect('/')->with('error', 'Email sudah terdaftar sebagai USER.');
+        }
+
+        if ($user && $user->role_id == 3) {
+            return redirect('/')->with('error', 'Email sudah terdaftar sebagai UNIT (user table).');
+        }
+
+        // 🔴 CHECK UNIT (INI YANG KAMU LUPA)
+        $unitExists = Unit::where('email', $email)->first();
+
+        if ($unitExists) {
+            return redirect('/')->with('error', 'Email sudah terdaftar sebagai UNIT.');
+        }
+
+        // create unit
         $unit = Unit::create([
             'kode_unit' => 'UNIT-' . strtoupper(Str::random(6)),
             'nama_unit' => $namaUnit,
-            'email' => $socialUser->email,
+            'email' => $email,
             'status' => 0,
-
             ...$unitTokenData,
         ]);
 
+        // create user
         User::create([
             'name' => $namaUnit,
-            'email' => $socialUser->email,
+            'email' => $email,
             'password' => bcrypt(Str::random(16)),
             'google_id' => $socialUser->id,
             'unit_id' => $unit->unit_id,
@@ -139,7 +163,8 @@ class GoogleController extends Controller
             'status' => 0,
         ]);
 
-        return redirect('/')->with('success', 'Unit anda berhasil didaftarkan. Silahkan tunggu verifikasi dari administrator.');
+        return redirect('/')
+            ->with('success', 'Unit berhasil didaftarkan. Silahkan tunggu verifikasi dari administrator.');
     }
 
     private function registerUser($socialUser)

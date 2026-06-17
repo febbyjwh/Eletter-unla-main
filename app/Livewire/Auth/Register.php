@@ -35,7 +35,7 @@ class Register extends Component
 
         session()->flash(
             'success',
-            'Registrasi berhasil. Menunggu approval admin.'
+            'Registrasi berhasil. Silahkan tunggul approval adrimistrator.'
         );
 
         $this->reset();

@@ -45,12 +45,12 @@ class Login extends Component
 
             $this->addError(
                 'email',
-                'Akun masih menunggu approval admin.'
+                'Akun Anda belum diaktifkan oleh administrator. Silakan menunggu persetujuan atau hubungi admin.'
             );
 
             return;
         }
-
+    
         session()->regenerate();
 
         return redirect()->route('dashboard');

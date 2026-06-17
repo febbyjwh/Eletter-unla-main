@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
     @livewireStyles
 </head>
 
@@ -63,9 +68,11 @@
                 @endphp
 
                 {{-- Notifikasi --}}
-                <div x-data="{ notifOpen: false }" class="relative">
-                    <button @click="notifOpen = !notifOpen" class="p-2 bg-gray-200 rounded-full relative focus:ring">
+                <div class="relative">
+                    <button @click.stop="notifOpen = !notifOpen"
+                        class="p-2 bg-gray-200 rounded-full relative focus:ring">
                         🔔
+
                         @if ($jumlah > 0)
                             <span
                                 class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
@@ -74,9 +81,12 @@
                         @endif
                     </button>
 
-                    <div x-show="notifOpen" @click.outside="notifOpen = false" x-transition
+                    <div x-show="notifOpen" @click.away="notifOpen = false" x-transition x-cloak
                         class="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50">
-                        <div class="p-3 border-b text-sm font-semibold text-gray-700">Notifikasi Surat Masuk</div>
+
+                        <div class="p-3 border-b text-sm font-semibold text-gray-700">
+                            Notifikasi Surat Masuk
+                        </div>
 
                         @if (count($list) > 0)
                             <ul class="max-h-60 overflow-y-auto text-sm">
@@ -89,10 +99,12 @@
                                 @endforeach
                             </ul>
                         @else
-                            <div class="p-4 text-sm text-gray-500 text-center">Belum ada surat masuk</div>
+                            <div class="p-4 text-sm text-gray-500 text-center">
+                                Belum ada surat masuk
+                            </div>
                         @endif
 
-                        <div class="p-2 text-center border-t text-xs text-blue-600 hover:bg-gray-50 cursor-pointer">
+                        <div class="p-2 text-center border-t text-xs text-blue-600 hover:bg-gray-50">
                             <a href="{{ route('arsip.admin') }}">Lihat semua</a>
                         </div>
                     </div>
@@ -100,7 +112,7 @@
 
                 {{-- User Profile --}}
                 <div class="relative">
-                    <button @click="userOpen = !userOpen" class="flex items-center gap-2 focus:outline-none">
+                    <button @click.stop="userOpen = !userOpen" class="flex items-center gap-2 focus:outline-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-600" fill="currentColor"
                             viewBox="0 0 24 24">
                             <path
@@ -114,7 +126,7 @@
                     </button>
 
                     {{-- Dropdown User --}}
-                    <div x-show="userOpen" @click.outside="userOpen = false" x-transition
+                    <div x-show="userOpen" @click.outside="userOpen = false" x-transition x-cloak
                         class="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                         <div class="p-3 border-b text-sm font-semibold text-gray-700">
                             Halo, {{ $displayName }}
@@ -135,11 +147,26 @@
 
                             {{-- Menu arsip berdasarkan tipe user --}}
                             @if ($role == 1)
-                                <a href="{{ route('arsip.admin') }}">Arsip Semua</a>
+                                <li>
+                                    <a href="{{ route('arsip.admin') }}" class="block px-4 py-2 hover:bg-gray-50">
+                                        <i class="fi fi-sr-folder"></i>
+                                        Arsip Semua
+                                    </a>
+                                </li>
                             @elseif ($role == 2)
-                                <a href="{{ route('arsip.user') }}">Arsip Saya</a>
+                                <li>
+                                    <a href="{{ route('arsip.user') }}" class="block px-4 py-2 hover:bg-gray-50">
+                                        <i class="fi fi-sr-folder"></i>
+                                        Arsip Saya
+                                    </a>
+                                </li>
                             @elseif ($role == 3)
-                                <a href="{{ route('arsip.admin') }}">Arsip Unit</a>
+                                <li>
+                                    <a href="{{ route('arsip.admin') }}" class="block px-4 py-2 hover:bg-gray-50">
+                                        <i class="fi fi-sr-folder"></i>
+                                        Arsip Unit
+                                    </a>
+                                </li>
                             @endif
 
                             <li>
