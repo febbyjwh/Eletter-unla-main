@@ -22,12 +22,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
         'unit_id',
         'role_id',
-        'google_access_token',
-        'google_refresh_token',
-        'google_token_expires_at',
-        'google_drive_folder_id',
+        // 'google_access_token',
+        // 'google_refresh_token',
+        // 'google_token_expires_at',
+        // 'google_drive_folder_id',
         'status' // 0 = nonaktif, 1 = aktif
     ];
 

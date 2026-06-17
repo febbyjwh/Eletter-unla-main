@@ -72,6 +72,8 @@ class GoogleController extends Controller
 
         // token data
         $tokenData = [
+            'google_id' => $socialUser->id,
+
             'google_access_token' => json_encode([
                 'access_token'  => $socialUser->token,
                 'refresh_token' => $socialUser->refreshToken,
@@ -82,18 +84,38 @@ class GoogleController extends Controller
             'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
         ];
 
+        $userData = [
+            'google_id' => $socialUser->id,
+        ];
+
+        $unitTokenData = [
+            'google_access_token' => json_encode([
+                'access_token'  => $socialUser->token,
+                'refresh_token' => $socialUser->refreshToken,
+                'expires_in'    => $socialUser->expiresIn ?? 3600,
+                'created'       => time(),
+            ]),
+            'google_refresh_token' => $socialUser->refreshToken,
+            'google_token_expires_at' => now()->addSeconds(
+                $socialUser->expiresIn ?? 3600
+            ),
+        ];
+
         if ($mode === 'register_unit') {
-            return $this->registerUnit($email, $tokenData);
+            return $this->registerUnit(
+                $socialUser,
+                $unitTokenData
+            );
         }
 
         if ($mode === 'register_user') {
-            return $this->registerUser($socialUser, $tokenData);
+            return $this->registerUser($socialUser);
         }
 
-        return $this->loginUser($email, $socialUser->refreshToken, $tokenData);
+        return $this->loginUser($socialUser);
     }
 
-    private function registerUnit(string $email, array $tokenData)
+    private function registerUnit($socialUser, array $unitTokenData)
     {
         $namaUnit = session()->pull('pending_nama_unit');
         if (!$namaUnit) return back()->with('error', 'Nama unit tidak ditemukan. Silakan isi nama unit sebelum melanjutkan.');
@@ -101,25 +123,26 @@ class GoogleController extends Controller
         $unit = Unit::create([
             'kode_unit' => 'UNIT-' . strtoupper(Str::random(6)),
             'nama_unit' => $namaUnit,
-            'email' => $email,
+            'email' => $socialUser->email,
             'status' => 0,
-            ...$tokenData,
+
+            ...$unitTokenData,
         ]);
 
         User::create([
             'name' => $namaUnit,
-            'email' => $email,
+            'email' => $socialUser->email,
             'password' => bcrypt(Str::random(16)),
+            'google_id' => $socialUser->id,
             'unit_id' => $unit->unit_id,
             'role_id' => 3,
             'status' => 0,
-            ...$tokenData,
         ]);
 
         return redirect('/')->with('success', 'Unit anda berhasil didaftarkan. Silahkan tunggu verifikasi dari administrator.');
     }
 
-    private function registerUser($socialUser, array $tokenData)
+    private function registerUser($socialUser)
     {
         if (User::where('email', $socialUser->email)->exists()) {
             return back()->with('error', 'Alamat email ini sudah terdaftar pada sistem. Silakan login atau gunakan email lain.');
@@ -129,27 +152,45 @@ class GoogleController extends Controller
             'name' => $socialUser->name,
             'email' => $socialUser->email,
             'password' => bcrypt(Str::random(16)),
+            'google_id' => $socialUser->id,
             'role_id' => 2,
             'status' => 0,
-            ...$tokenData,
         ]);
 
         return redirect('/')->with('success', 'User berhasil register. Silahkan tunggu verifikasi dari administrator');
     }
 
-    private function loginUser(string $email, ?string $refreshToken, array $tokenData)
+    private function loginUser($socialUser)
     {
-        $user = User::where('email', $email)->first();
-        if (!$user) return redirect('/register')->with('error', 'Akun dengan email ini belum terdaftar. Silakan melakukan registrasi terlebih dahulu.');
-        if ($user->status != 1) return back()->with('error', 'Akun Anda belum aktif. Silakan hubungi administrator untuk proses aktivasi.');
+        $user = User::where('email', $socialUser->email)->first();
 
-        $user->update(array_merge(
-            $tokenData,
-            [
-                'google_refresh_token' => $refreshToken ?? $user->google_refresh_token
-            ]
-        ));
-        Auth::login($user);
+        if (!$user) {
+            return redirect('/register')
+                ->with(
+                    'error',
+                    'Akun dengan email ini belum terdaftar. Silakan melakukan registrasi terlebih dahulu.'
+                );
+        }
+
+        if ($user->status != 1) {
+            return back()->with(
+                'error',
+                'Akun Anda belum aktif. Silakan hubungi administrator untuk proses aktivasi.'
+            );
+        }
+
+        if (is_null($user->google_id)) {
+            $user->update([
+                'google_id' => $socialUser->id,
+            ]);
+        } elseif ($user->google_id != $socialUser->id) {
+            return back()->with(
+                'error',
+                'Google account tidak sesuai dengan akun yang terdaftar.'
+            );
+        }
+
+        Auth::login($user, true);
 
         return redirect('/dashboard');
     }

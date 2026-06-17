@@ -21,9 +21,9 @@ return new class extends Migration
                 ->constrained('unit', 'unit_id')
                 ->nullOnDelete();
             $table->string('google_id')->nullable()->unique();
-            $table->longText('google_access_token')->nullable();
-            $table->longText('google_refresh_token')->nullable();
-            $table->timestamp('google_token_expires_at')->nullable();
+            // $table->longText('google_access_token')->nullable();
+            // $table->longText('google_refresh_token')->nullable();
+            // $table->timestamp('google_token_expires_at')->nullable();
             $table->tinyInteger('role_id')
                 ->default(2)
                 ->comment('1=admin, 2=user, 3=unit');
