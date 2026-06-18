@@ -61,7 +61,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // user eb
-Route::middleware(['role:1,2,3'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/profile', Profile::class)->name('profile.show');
 

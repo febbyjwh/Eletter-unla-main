@@ -45,6 +45,14 @@ class ArsipAdmin extends Component
         $this->resetForm();
     }
 
+    // public function mount()
+    // {
+    //     dd(
+    //         auth()->check(),
+    //         auth()->id(),
+    //         request()->cookie()
+    //     );
+    // }
 
     public function save()
     {

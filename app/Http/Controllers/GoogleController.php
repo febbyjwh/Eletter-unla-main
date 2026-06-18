@@ -125,7 +125,6 @@ class GoogleController extends Controller
 
         $email = $socialUser->email;
 
-        // 🔴 CHECK USER
         $user = User::where('email', $email)->first();
 
         if ($user && $user->role_id == 2) {
@@ -136,7 +135,6 @@ class GoogleController extends Controller
             return redirect('/')->with('error', 'Email sudah terdaftar sebagai UNIT (user table).');
         }
 
-        // 🔴 CHECK UNIT (INI YANG KAMU LUPA)
         $unitExists = Unit::where('email', $email)->first();
 
         if ($unitExists) {
