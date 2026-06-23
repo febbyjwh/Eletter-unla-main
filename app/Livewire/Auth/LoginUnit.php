@@ -39,7 +39,7 @@ class LoginUnit extends Component
 
         session()->regenerate();
 
-        return redirect()->route('unit.google.redirect');
+        return redirect('/dashboard');
     }
 
     public function render()

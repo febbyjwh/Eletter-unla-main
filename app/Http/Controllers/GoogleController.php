@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Google\Client;
 use Google\Service\Drive;
 use Google\Service\Drive\DriveFile;
@@ -64,8 +65,15 @@ class GoogleController extends Controller
 
     public function callback(Request $request)
     {
-        $socialUser = Socialite::driver('google')->user();
-        $mode = session('auth_mode');
+        $mode = session('auth_mode', 'login');
+
+        try {
+            $socialUser = Socialite::driver('google')->user();
+        } catch (InvalidStateException $exception) {
+            return redirect('/')
+                ->with('error', 'Sesi login Google sudah kedaluwarsa. Silakan klik Login dengan Google lagi.');
+        }
+
         session()->forget('auth_mode');
 
         $email = $socialUser->email;

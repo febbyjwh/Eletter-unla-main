@@ -454,9 +454,11 @@
                 </div>
             @endif
 
-            <form wire:submit.prevent="login" class="login-form">
+            <form method="POST" action="{{ route('login.post') }}" class="login-form" autocomplete="off">
+                @csrf
                 <div>
-                    <input type="email" wire:model="email" class="login-input" placeholder="contoh@unla.ac.id"
+                    <input type="email" name="email" value="{{ old('email') }}" class="login-input" placeholder="contoh@unla.ac.id"
+                        autocomplete="username"
                         required>
                     @error('email')
                         <p class="login-field-error">{{ $message }}</p>
@@ -467,7 +469,8 @@
                     <div class="login-field-top">
                         <a href="{{ route('password.request') }}">Lupa Password?</a>
                     </div>
-                    <input type="password" wire:model="password" class="login-input" placeholder="Masukkan password"
+                    <input type="password" name="password" class="login-input" placeholder="Masukkan password"
+                        autocomplete="current-password"
                         required>
                     @error('password')
                         <p class="login-field-error">{{ $message }}</p>

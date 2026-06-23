@@ -48,6 +48,18 @@
                         penerima
                         {!! $sortField === 'penerima' ? ($sortDirection === 'asc' ? '⬆️' : '⬇️') : '' !!}
                     </th>
+                    <th class="p-3 text-left cursor-pointer" wire:click="sortBy('penanda_tangan')">
+                        Penanda Tangan
+                        {!! $sortField === 'penanda_tangan' ? ($sortDirection === 'asc' ? 'naik' : 'turun') : '' !!}
+                    </th>
+                    <th class="p-3 text-left cursor-pointer" wire:click="sortBy('tujuan')">
+                        Tujuan
+                        {!! $sortField === 'tujuan' ? ($sortDirection === 'asc' ? 'naik' : 'turun') : '' !!}
+                    </th>
+                    <th class="p-3 text-left cursor-pointer" wire:click="sortBy('pengupload')">
+                        Pengupload
+                        {!! $sortField === 'pengupload' ? ($sortDirection === 'asc' ? 'naik' : 'turun') : '' !!}
+                    </th>
                     <th class="p-3 text-left cursor-pointer" wire:click="sortBy('perihal')">
                         Perihal
                         {!! $sortField === 'perihal' ? ($sortDirection === 'asc' ? '⬆️' : '⬇️') : '' !!}
@@ -72,6 +84,9 @@
                         <td class="p-3 font-medium">{{ $surat->no_surat }}</td>
                         <td class="p-3">{{ $surat->pengirim }}</td>
                         <td class="p-3">{{ $surat->penerima }}</td>
+                        <td class="p-3">{{ $surat->penanda_tangan ?? '-' }}</td>
+                        <td class="p-3">{{ $surat->tujuan ?? '-' }}</td>
+                        <td class="p-3">{{ $surat->pengupload ?? '-' }}</td>
                         <td class="p-3">{{ $surat->perihal }}</td>
                         <td class="p-3 whitespace-nowrap">{{ $surat->tanggal }}</td>
 
@@ -118,7 +133,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="text-center p-4 text-gray-500">
+                        <td colspan="15" class="text-center p-4 text-gray-500">
                             🙅 Belum ada data surat.
                         </td>
                     </tr>
@@ -253,6 +268,33 @@
                                 <input type="text" wire:model="penerima"
                                     class="w-full border border-gray-300 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
                                 @error('penerima')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-600">Penanda Tangan</label>
+                                <input type="text" wire:model="penanda_tangan"
+                                    class="w-full border border-gray-300 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
+                                @error('penanda_tangan')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-600">Tujuan</label>
+                                <input type="text" wire:model="tujuan"
+                                    class="w-full border border-gray-300 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
+                                @error('tujuan')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block mb-1 text-sm font-medium text-gray-600">Pengupload</label>
+                                <input type="text" wire:model="pengupload"
+                                    class="w-full border border-gray-300 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition">
+                                @error('pengupload')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>

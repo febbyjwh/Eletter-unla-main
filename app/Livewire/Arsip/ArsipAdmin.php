@@ -10,6 +10,7 @@ use App\Services\GoogleDriveService;
 use App\Models\Arsip;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ArsipAdmin extends Component
 {
@@ -24,7 +25,7 @@ class ArsipAdmin extends Component
     public $arsipId;
 
     // form fields
-    public $jenis_surat, $no_surat, $pengirim, $penerima, $perihal, $tanggal;
+    public $jenis_surat, $no_surat, $pengirim, $pembuat, $penerima, $tujuan, $penanda_tangan, $pengupload, $perihal, $tanggal;
     public $file_surat, $new_file;
 
     public function updatingSearch()
@@ -35,6 +36,7 @@ class ArsipAdmin extends Component
     public function openModal()
     {
         $this->resetForm();
+        $this->jenis_surat = 'masuk';
         $this->isEdit = false;
         $this->isModalOpen = true;
     }
@@ -60,27 +62,46 @@ class ArsipAdmin extends Component
             'jenis_surat' => 'required',
             'no_surat' => 'required',
             'pengirim' => 'required',
-            'penerima' => 'required',
+            'pembuat' => 'nullable|string|max:150',
+            'penerima' => 'nullable|string|max:150',
+            'tujuan' => 'nullable|string|max:150',
+            'penanda_tangan' => 'nullable|string|max:150',
+            'pengupload' => 'nullable|string|max:150',
             'perihal' => 'required',
             'tanggal' => 'required|date',
             'new_file' => ($this->isEdit ? 'nullable' : 'required') . '|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
+        if ($this->jenis_surat === 'masuk' && blank($this->penerima)) {
+            $this->addError('penerima', 'Penerima wajib diisi untuk surat masuk.');
+            return;
+        }
+
+        if ($this->jenis_surat === 'keluar' && blank($this->tujuan)) {
+            $this->addError('tujuan', 'Tujuan wajib diisi untuk surat keluar.');
+            return;
+        }
+
         $filePath = $this->file_surat;
 
         if ($this->new_file) {
-            try {
+            $unit = auth()->user()?->unit;
 
-                $upload = GoogleController::uploadFileToDrive(
-                    $this->new_file,
-                    $this->jenis_surat,
-                    $this->tanggal
-                );
+            if ($unit?->google_access_token && $unit?->google_drive_folder_id) {
+                try {
+                    $upload = GoogleController::uploadFileToDrive(
+                        $this->new_file,
+                        $this->jenis_surat,
+                        $this->tanggal
+                    );
 
-                $filePath = $upload['url'] ?? null;
-            } catch (\Exception $e) {
-                $this->addError('new_file', $e->getMessage());
-                return;
+                    $filePath = $upload['url'] ?? null;
+                } catch (\Exception $e) {
+                    $filePath = $this->storeFileLocally();
+                    session()->flash('message', 'File disimpan lokal karena upload Google Drive gagal: ' . $e->getMessage());
+                }
+            } else {
+                $filePath = $this->storeFileLocally();
             }
         }
 
@@ -90,6 +111,7 @@ class ArsipAdmin extends Component
         }
 
         $pengirim = auth()->user();
+        $unitId = $pengirim->unit_id;
 
         $penerimaUser = \App\Models\User::where('email', $this->penerima)->first();
 
@@ -97,7 +119,11 @@ class ArsipAdmin extends Component
             'jenis_surat' => $this->jenis_surat,
             'no_surat' => $this->no_surat,
             'pengirim' => $this->pengirim,
-            'penerima' => $this->penerima,
+            'pembuat' => $this->jenis_surat === 'keluar' ? $this->pembuat : null,
+            'penerima' => $this->jenis_surat === 'masuk' ? $this->penerima : $this->tujuan,
+            'tujuan' => $this->tujuan,
+            'penanda_tangan' => $this->penanda_tangan,
+            'pengupload' => $this->pengupload,
             'pengirim_user_id' => $pengirim->id,
             'pengirim_unit_id' => $pengirim->unit_id,
             'penerima_user_id' => $penerimaUser?->id,
@@ -112,8 +138,8 @@ class ArsipAdmin extends Component
             Arsip::create(array_merge($data, [
                 'user_id' => auth()->id(),
                 'unit_id' => auth()->user()->unit_id,
-                'unit_pengirim_id' => auth()->user()->unit_id,
-                'unit_penerima_id' => auth()->user()->unit_id,
+                'unit_pengirim_id' => $this->jenis_surat === 'keluar' ? $unitId : null,
+                'unit_penerima_id' => $this->jenis_surat === 'masuk' ? $unitId : null,
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
                 'created_role_id' => auth()->user()->role_id,
@@ -133,7 +159,11 @@ class ArsipAdmin extends Component
         $this->jenis_surat = $arsip->jenis_surat;
         $this->no_surat = $arsip->no_surat;
         $this->pengirim = $arsip->pengirim;
+        $this->pembuat = $arsip->pembuat;
         $this->penerima = $arsip->penerima;
+        $this->tujuan = $arsip->tujuan;
+        $this->penanda_tangan = $arsip->penanda_tangan;
+        $this->pengupload = $arsip->pengupload;
         $this->perihal = $arsip->perihal;
         $this->tanggal = $arsip->tanggal;
 
@@ -150,7 +180,7 @@ class ArsipAdmin extends Component
         $arsip = $this->arsipQuery()->findOrFail($id);
 
         // hapus file kalau ada
-        if ($arsip->file_surat && Storage::disk('public')->exists($arsip->file_surat)) {
+        if ($arsip->file_surat && !Str::startsWith($arsip->file_surat, ['http://', 'https://']) && Storage::disk('public')->exists($arsip->file_surat)) {
             Storage::disk('public')->delete($arsip->file_surat);
         }
 
@@ -175,7 +205,11 @@ class ArsipAdmin extends Component
             'jenis_surat',
             'no_surat',
             'pengirim',
+            'pembuat',
             'penerima',
+            'tujuan',
+            'penanda_tangan',
+            'pengupload',
             'perihal',
             'tanggal',
             'file_surat',
@@ -212,6 +246,14 @@ class ArsipAdmin extends Component
             ->orderBy('tanggal', 'desc');
     }
 
+    private function storeFileLocally(): string
+    {
+        $extension = $this->new_file->getClientOriginalExtension();
+        $fileName = Str::slug($this->no_surat . '_' . $this->tanggal . '_' . $this->perihal, '_') . '.' . $extension;
+
+        return $this->new_file->storeAs('arsip_files', $fileName, 'public');
+    }
+
     public function render()
     {
         // dd(auth()->id(), auth()->user()->role_id);
@@ -221,7 +263,11 @@ class ArsipAdmin extends Component
                     $q->where('no_surat', 'like', "%{$this->search}%")
                         ->orWhere('perihal', 'like', "%{$this->search}%")
                         ->orWhere('pengirim', 'like', "%{$this->search}%")
-                        ->orWhere('penerima', 'like', "%{$this->search}%");
+                        ->orWhere('pembuat', 'like', "%{$this->search}%")
+                        ->orWhere('penerima', 'like', "%{$this->search}%")
+                        ->orWhere('tujuan', 'like', "%{$this->search}%")
+                        ->orWhere('penanda_tangan', 'like', "%{$this->search}%")
+                        ->orWhere('pengupload', 'like', "%{$this->search}%");
                 });
             })
             ->latest()

@@ -78,13 +78,15 @@
 
   <!-- Table Surat Terbaru -->
   <div class="bg-white p-4 rounded-2xl shadow-md">
-      <p class="font-semibold mb-3">📥 Surat Masuk Terbaru</p>
+      <p class="font-semibold mb-3">Surat Terbaru</p>
       <div class="overflow-x-auto">
           <table class="w-full text-sm border-collapse">
               <thead class="text-gray-500 border-b">
                   <tr>
                       <th class="text-left p-2">No Surat</th>
+                      <th class="text-left p-2">Jenis</th>
                       <th class="text-left p-2">Pengirim</th>
+                      <th class="text-left p-2">Tujuan/Penerima</th>
                       <th class="text-left p-2">Perihal</th>
                       <th class="text-left p-2">Tanggal</th>
                   </tr>
@@ -93,9 +95,15 @@
                   @foreach ($suratTerbaru as $surat)
                       <tr class="border-b">
                           <td class="p-2">{{ $surat->no_surat }}</td>
-                          <td>{{ $surat->pengirim }}</td>
-                          <td>{{ $surat->perihal }}</td>
-                          <td>{{ \Carbon\Carbon::parse($surat->tanggal)->format('d-m-Y') }}</td>
+                          <td class="p-2">
+                              <span class="px-2 py-1 text-xs rounded-full {{ $surat->jenis_surat === 'masuk' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600' }}">
+                                  {{ $surat->jenis_surat === 'masuk' ? 'Masuk' : 'Keluar' }}
+                              </span>
+                          </td>
+                          <td class="p-2">{{ $surat->pengirim }}</td>
+                          <td class="p-2">{{ $surat->tujuan ?? $surat->penerima ?? '-' }}</td>
+                          <td class="p-2">{{ $surat->perihal }}</td>
+                          <td class="p-2">{{ \Carbon\Carbon::parse($surat->tanggal)->format('d-m-Y') }}</td>
                       </tr>
                   @endforeach
               </tbody>
