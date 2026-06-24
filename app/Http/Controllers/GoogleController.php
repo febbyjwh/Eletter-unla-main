@@ -15,7 +15,16 @@ use Google\Service\Drive\Permission;
 
 class GoogleController extends Controller
 {
-    private function scopes(): array
+    private function userScopes(): array
+    {
+        return [
+            'openid',
+            'email',
+            'profile',
+        ];
+    }
+
+    private function unitScopes(): array
     {
         return [
             'openid',
@@ -30,8 +39,7 @@ class GoogleController extends Controller
         session(['auth_mode' => 'login']);
 
         return Socialite::driver('google')
-            ->scopes($this->scopes())
-            ->with(['access_type' => 'offline'])
+            ->scopes($this->userScopes())
             ->redirect();
     }
 
@@ -40,11 +48,7 @@ class GoogleController extends Controller
         session(['auth_mode' => 'register_user']);
 
         return Socialite::driver('google')
-            ->scopes($this->scopes())
-            ->with([
-                'access_type' => 'offline',
-                // 'prompt' => 'consent',
-            ])
+            ->scopes($this->userScopes())
             ->redirect();
     }
 
@@ -54,7 +58,7 @@ class GoogleController extends Controller
         session()->save();
 
         return Socialite::driver('google')
-            ->scopes($this->scopes())
+            ->scopes($this->unitScopes())
             ->with([
                 'access_type' => 'offline',
                 'prompt' => 'consent',
@@ -67,26 +71,6 @@ class GoogleController extends Controller
         $socialUser = Socialite::driver('google')->user();
         $mode = session('auth_mode');
         session()->forget('auth_mode');
-
-        $email = $socialUser->email;
-
-        // token data
-        $tokenData = [
-            'google_id' => $socialUser->id,
-
-            'google_access_token' => json_encode([
-                'access_token'  => $socialUser->token,
-                'refresh_token' => $socialUser->refreshToken,
-                'expires_in'    => $socialUser->expiresIn ?? 3600,
-                'created'       => time(),
-            ]),
-            'google_refresh_token' => $socialUser->refreshToken,
-            'google_token_expires_at' => now()->addSeconds($socialUser->expiresIn ?? 3600),
-        ];
-
-        $userData = [
-            'google_id' => $socialUser->id,
-        ];
 
         $unitTokenData = [
             'google_access_token' => json_encode([

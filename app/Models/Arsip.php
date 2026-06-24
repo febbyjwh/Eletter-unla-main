@@ -15,13 +15,21 @@ class Arsip extends Model
         'user_id',
         'unit_pengirim_id',
         'unit_penerima_id',
+
         'jenis_surat',
         'no_surat',
         'pengirim',
         'penerima',
+
+        'pembuat',
+        'tujuan',
+        'penanda_tangan',
+        'pengupload',
+
         'perihal',
         'tanggal',
         'file_surat',
+
         'created_by',
         'updated_by',
         'created_role_id',

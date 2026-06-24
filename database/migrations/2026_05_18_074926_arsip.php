@@ -20,6 +20,11 @@ return new class extends Migration
             $table->string('no_surat');
             $table->string('pengirim');
             $table->string('penerima');
+            $table->string('penanda_tangan')->nullable();
+            $table->string('pengupload')->nullable();
+            $table->string('pembuat')->nullable();
+            $table->string('tujuan')->nullable();
+
             $table->string('perihal');
             $table->date('tanggal');
             $table->string('file_surat')->nullable();

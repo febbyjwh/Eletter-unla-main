@@ -8,17 +8,17 @@
     @if (session()->has('message'))
         <div
             class="bg-green-50 text-green-700 px-4 py-2 rounded-2xl mb-4 shadow-sm border border-green-200 text-sm sm:text-base">
-            ✅ {{ session('message') }}
+            {{ session('message') }}
         </div>
     @endif
 
-    <!-- 🔘 Tombol Tambah -->
+    <!-- Tombol Tambah -->
     <button wire:click="openModal"
         class="bg-gradient-to-r from-blue-400 to-blue-500 text-white px-4 py-2 rounded-xl mb-3 text-sm sm:text-base shadow hover:from-blue-500 hover:to-blue-600 transition-all">
         + Tambah Arsip
     </button>
 
-    <!-- 🔍 Search & Per Page -->
+    <!-- Search & Per Page -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">
 
         <div class="relative w-full sm:w-64">
@@ -54,7 +54,7 @@
     </div>
 
     <!-- TABLE -->
-    <div class="w-full p-3 overflow-x-auto bg-white rounded-2xl shadow-lg border border-gray-200">
+    <div class="w-full overflow-x-auto bg-white rounded-2xl shadow-lg border border-gray-200">
 
         <table class="w-full text-xs sm:text-sm border-collapse table-auto">
 
@@ -63,8 +63,8 @@
                     <th class="p-3 text-left">No</th>
                     <th class="p-3 text-left">No Surat</th>
                     <th class="p-3 text-left">Jenis</th>
-                    <th class="p-3 text-left">Pengirim</th>
-                    <th class="p-3 text-left">Penerima</th>
+                    <th class="p-3 text-left">Relasi Surat</th>
+                    <th class="p-3 text-left">Tujuan</th>
                     <th class="p-3 text-left">Perihal</th>
                     <th class="p-3 text-left">Tanggal</th>
                     <th class="p-3 text-left">File</th>
@@ -76,50 +76,72 @@
                 @forelse ($arsip as $index => $item)
                     <tr class="border-b hover:bg-gray-50/70 transition">
 
-                        <td class="p-3">
+                        <td class="p-3 text-gray-500">
                             {{ $arsip->firstItem() + $index }}
                         </td>
 
-                        <td class="p-3 font-medium">
+                        <td class="p-3 font-medium text-gray-800">
                             {{ $item->no_surat }}
                         </td>
 
                         <td class="p-3">
                             @if ($item->jenis_surat === 'masuk')
-                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-600">
-                                    <i class="fi fi-sr-inbox-in"></i></i> Masuk
+                                <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
+                                    <i class="fi fi-sr-inbox-in"></i> Masuk
                                 </span>
                             @else
-                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
+                                <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-green-100 text-green-600">
                                     <i class="fi fi-sr-paper-plane"></i> Keluar
                                 </span>
                             @endif
                         </td>
 
-                        <td>
-                            {{ $item->pengirim }}
-                            <div class="text-xs text-gray-400 mt-1">
-                                Dikirim oleh: {{ $item->unitPengirim->nama_unit ?? '-' }}
+                        <td class="p-3 text-gray-700">
+                            <div class="font-medium text-gray-800">
+                                Pengirim: {{ $item->pengirim ?? '-' }}
+                            </div>
+
+                            <div class="text-xs font-medium text-gray-400 mt-1 space-y-0.5">
+                                @if ($item->jenis_surat === 'masuk')
+                                    <div>
+                                        Penerima:
+                                        <span class="font-medium text-gray-500">
+                                            {{ $item->penerima ?? '-' }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <div>
+                                        Pembuat:
+                                        <span class="font-medium text-gray-500">
+                                            {{ $item->pembuat ?? '-' }}
+                                        </span>
+                                    </div>
+                                @endif
+
+                                <div>
+                                    Pengupload:
+                                    <span class="font-medium text-gray-500">
+                                        {{ optional($item->creator)->name ?? 'System' }}
+                                    </span>
+                                </div>
                             </div>
                         </td>
 
-                        <td>
-                            {{ $item->penerima }}
-                            <div class="text-xs text-gray-400 mt-1">
-                                Diterima oleh: {{ $item->unitPenerima->nama_unit ?? '-' }}
-                            </div>
+                        <td class="p-3 text-gray-700">
+                            {{ $item->tujuan ?? '-' }}
                         </td>
 
-                        {{-- Perihal + metadata --}}
                         <td class="p-3">
                             <div class="font-medium text-gray-800">
                                 {{ $item->perihal }}
                             </div>
 
                             <div class="text-xs text-gray-400 mt-1">
-                                dibuat oleh
-                                <span class="font-medium">
-                                    {{ optional($item->creator)->name ?? 'System' }}
+                                Penandatangan:
+                                <span class="font-medium text-gray-500">
+                                    {{ $item->penanda_tangan ?? '-' }}
                                 </span>
                             </div>
                         </td>
@@ -130,22 +152,16 @@
                                 {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}
                             </div>
 
-                            <div class="text-xs text-gray-600 mt-1">
+                            <div class="text-[11px] text-gray-400 mt-1">
                                 update {{ $item->updated_at->diffForHumans() }}
                             </div>
-
-                            <div class="text-[11px] text-gray-500">
-                                create {{ $item->updated_at->format('H:i') }}
-                            </div>
                         </td>
-                        {{-- <td class="p-3">
-                            {{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}
-                        </td> --}}
 
                         <td class="p-3">
                             @if ($item->file_surat)
-                                <a href="{{ $item->file_surat }}" target="_blank"
-                                    class="font-medium text-blue-500 hover:bg-blue-200 hover:text-blue-500 px-2 py-1 rounded-full">
+                                <a href="{{ \Illuminate\Support\Str::startsWith($item->file_surat, ['http://', 'https://']) ? $item->file_surat : Storage::url($item->file_surat) }}"
+                                    target="_blank"
+                                    class="inline-flex items-center gap-1.5 font-medium text-blue-500 hover:bg-blue-100 px-2.5 py-1 rounded-full transition-colors">
                                     <i class="fi fi-rr-file"></i> Preview
                                 </a>
                             @else
@@ -153,22 +169,21 @@
                             @endif
                         </td>
 
-                        <td class="p-3 text-center">
+                        <td class="p-3">
                             <div class="flex items-center justify-center gap-2">
 
                                 <button
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs
-                   bg-amber-400 text-white rounded-xl
-                   hover:bg-amber-500 transition duration-200"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                                           bg-amber-400 text-white rounded-xl
+                                           hover:bg-amber-500 transition-colors"
                                     wire:click="edit({{ $item->id }})">
-
                                     <i class="fi fi-rr-pencil leading-none"></i>
                                     Edit
                                 </button>
 
                                 <button wire:click="confirmDelete({{ $item->id }})"
-                                    class="px-3 py-1 text-xs bg-red-500 text-white rounded-xl hover:bg-red-600">
-
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                                           bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">
                                     <i class="fi fi-rr-trash"></i>
                                     Hapus
                                 </button>
@@ -179,7 +194,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center p-4 text-gray-500">
+                        <td colspan="9" class="text-center py-10 text-gray-400">
+                            <i class="fi fi-rr-folder-open text-2xl block mb-2"></i>
                             Belum ada data arsip
                         </td>
                     </tr>
@@ -230,14 +246,40 @@
                             Jenis Surat
                         </label>
 
-                        <select wire:model="jenis_surat"
-                            class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                        <div class="grid grid-cols-2 gap-2 rounded-2xl border border-gray-200 bg-gray-50 p-1.5">
+                            <button type="button" wire:click="$set('jenis_surat', 'masuk')"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ $jenis_surat === 'masuk'
+                                        ? 'bg-blue-500 text-white shadow-sm'
+                                        : 'text-gray-600 hover:bg-white hover:text-blue-600' }}">
+                                <i class="fi fi-sr-inbox-in leading-none"></i>
+                                Surat Masuk
+                            </button>
+
+                            <button type="button" wire:click="$set('jenis_surat', 'keluar')"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition
+                                    {{ $jenis_surat === 'keluar'
+                                        ? 'bg-green-500 text-white shadow-sm'
+                                        : 'text-gray-600 hover:bg-white hover:text-green-600' }}">
+                                <i class="fi fi-sr-paper-plane leading-none"></i>
+                                Surat Keluar
+                            </button>
+                        </div>
+
+                        @error('jenis_surat')
+                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
+
+                        <div class="hidden">
+                            <select wire:model="jenis_surat"
+                                class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
                            focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
 
-                            <option value="">Pilih Jenis Surat</option>
-                            <option value="masuk">📥 Surat Masuk</option>
-                            <option value="keluar">📤 Surat Keluar</option>
-                        </select>
+                                <option value="">Pilih Jenis Surat</option>
+                                <option value="masuk">📥 Surat Masuk</option>
+                                <option value="keluar">📤 Surat Keluar</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Grid Form -->
@@ -250,7 +292,7 @@
 
                             <input wire:model="no_surat" placeholder="Masukkan nomor surat"
                                 class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
-                               focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+            focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
                         </div>
 
                         <div>
@@ -260,28 +302,92 @@
 
                             <input type="date" wire:model="tanggal"
                                 class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
-                               focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+            focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
                         </div>
 
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700">
-                                Pengirim
-                            </label>
+                        @if ($jenis_surat === 'masuk')
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Pengirim
+                                </label>
 
-                            <input wire:model="pengirim" placeholder="Nama pengirim"
-                                class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
-                               focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
-                        </div>
+                                <input wire:model="pengirim" placeholder="Nama pengirim"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
 
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700">
-                                Penerima
-                            </label>
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Penerima
+                                </label>
 
-                            <input wire:model="penerima" placeholder="Nama penerima"
-                                class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
-                               focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
-                        </div>
+                                <input wire:model="penerima" placeholder="Nama penerima"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Tujuan
+                                </label>
+
+                                <input wire:model="tujuan" placeholder="Tujuan surat"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Penandatangan
+                                </label>
+
+                                <input wire:model="penanda_tangan" placeholder="Nama penandatangan"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
+                        @endif
+
+                        @if ($jenis_surat === 'keluar')
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Pengirim
+                                </label>
+
+                                <input wire:model="pengirim" placeholder="Nama pengirim"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Pembuat Surat
+                                </label>
+
+                                <input wire:model="pembuat" placeholder="Nama pembuat surat"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Tujuan
+                                </label>
+
+                                <input wire:model="tujuan" placeholder="Tujuan surat"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-gray-700">
+                                    Penandatangan
+                                </label>
+
+                                <input wire:model="penanda_tangan" placeholder="Nama penandatangan"
+                                    class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
+                focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+                            </div>
+                        @endif
 
                     </div>
 
@@ -293,7 +399,7 @@
 
                         <input wire:model="perihal" placeholder="Masukkan perihal surat"
                             class="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm
-                           focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
+        focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none transition">
                     </div>
 
                     <!-- Upload -->

@@ -13,10 +13,10 @@
     @endif
 
     <!-- Tombol Tambah -->
-    <button wire:click="openModal"
+    {{-- <button wire:click="openModal"
         class="bg-gradient-to-r from-blue-400 to-blue-500 text-white px-4 py-2 rounded-xl mb-3 text-sm sm:text-base shadow hover:from-blue-500 hover:to-blue-600 transition-all">
         + Tambah Unit
-    </button>
+    </button> --}}
 
     <!-- Search & Per Page -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">

@@ -3,7 +3,6 @@
 namespace App\Livewire\Dashboard;
 
 use Livewire\Component;
-use Illuminate\Support\Facades\DB;
 // use App\Models\SuratMasuk;
 // use App\Models\SuratKeluar;
 use App\Models\Arsip;
@@ -41,16 +40,15 @@ class Dashboard extends Component
         // dd(auth()->user()->roles);
         
         // 🔸 Hitung jumlah surat masuk, keluar, dan disposisi
-        $this->jumlahSuratMasuk = Arsip::where('jenis_surat', 'masuk')->count();
-        $this->jumlahSuratKeluar = Arsip::where('jenis_surat', 'keluar')->count();
-        $this->jumlahDisposisi = Disposisi::count();
+        $arsipQuery = $this->arsipQuery();
+
+        $this->jumlahSuratMasuk = (clone $arsipQuery)->where('jenis_surat', 'masuk')->count();
+        $this->jumlahSuratKeluar = (clone $arsipQuery)->where('jenis_surat', 'keluar')->count();
+        $this->jumlahDisposisi = $this->disposisiQuery()->count();
 
         // 🔸 Ambil data untuk statistik surat masuk bulanan (bar chart)
-        $dataBulanan = DB::table('arsip')
-            ->select(
-                DB::raw('MONTH(tanggal) as bulan'),
-                DB::raw('COUNT(*) as total')
-            )
+        $dataBulanan = (clone $arsipQuery)
+            ->selectRaw('MONTH(tanggal) as bulan, COUNT(*) as total')
             ->whereYear('tanggal', date('Y'))
             ->groupBy('bulan')
             ->orderBy('bulan')
@@ -97,9 +95,43 @@ class Dashboard extends Component
         ];
 
         // 🔸 Surat masuk terbaru
-        $this->suratTerbaru = Arsip::orderBy('tanggal', 'desc')
+        $this->suratTerbaru = (clone $arsipQuery)
+            ->orderBy('tanggal', 'desc')
             ->take(5)
-            ->get(['no_surat', 'pengirim', 'perihal', 'tanggal']);
+            ->get(['no_surat', 'jenis_surat', 'pengirim', 'penerima', 'tujuan', 'perihal', 'tanggal']);
+    }
+
+    protected function arsipQuery()
+    {
+        $user = auth()->user();
+
+        $query = Arsip::query();
+
+        if ($user?->role_id == 1) {
+            return $query;
+        }
+
+        if ($user?->unit_id) {
+            return $query->where(function ($q) use ($user) {
+                $q->where('unit_pengirim_id', $user->unit_id)
+                    ->orWhere('unit_penerima_id', $user->unit_id);
+            });
+        }
+
+        return $query->where('user_id', $user?->id);
+    }
+
+    protected function disposisiQuery()
+    {
+        $user = auth()->user();
+
+        $query = Disposisi::query();
+
+        if ($user?->role_id == 1) {
+            return $query;
+        }
+
+        return $query->where('user_id', $user?->id);
     }
 
     /**
