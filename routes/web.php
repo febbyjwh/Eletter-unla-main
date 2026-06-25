@@ -28,6 +28,40 @@ use App\Livewire\Arsip\ArsipUser;
 use App\Livewire\Laporan\LaporanManagement;
 
 Route::get('/', Login::class)->name('login');
+Route::post('/login', function (Request $request) {
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required', 'string'],
+    ]);
+
+    if (!Auth::attempt($credentials)) {
+        return back()
+            ->withErrors(['email' => 'Email atau password salah.'])
+            ->withInput($request->only('email'));
+    }
+
+    $user = Auth::user();
+
+    if ($user->role_id == 3) {
+        Auth::logout();
+
+        return back()
+            ->withErrors(['email' => 'Silakan login melalui halaman unit.'])
+            ->withInput($request->only('email'));
+    }
+
+    if ($user->status != 1) {
+        Auth::logout();
+
+        return back()
+            ->withErrors(['email' => 'Akun Anda belum diaktifkan oleh administrator. Silakan menunggu persetujuan atau hubungi admin.'])
+            ->withInput($request->only('email'));
+    }
+
+    $request->session()->regenerate();
+
+    return redirect('/dashboard');
+})->name('login.post');
 Route::get('/register', Register::class)->name('register');
 Route::get('/login-unit', LoginUnit::class)->name('login-unit');
 Route::get('/register-unit', RegisterUnit::class)->name('register-unit');

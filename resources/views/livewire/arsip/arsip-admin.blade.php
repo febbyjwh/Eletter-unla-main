@@ -56,31 +56,31 @@
     <!-- TABLE -->
     <div class="w-full overflow-x-auto bg-white rounded-2xl shadow-lg border border-gray-200">
 
-        <table class="w-full text-xs sm:text-sm border-collapse table-auto">
+        <table class="min-w-[1100px] w-full text-xs sm:text-sm border-collapse table-fixed">
 
             <thead class="text-gray-600 border-b bg-gray-50/70">
                 <tr>
-                    <th class="p-3 text-left">No</th>
-                    <th class="p-3 text-left">No Surat</th>
-                    <th class="p-3 text-left">Jenis</th>
-                    <th class="p-3 text-left">Relasi Surat</th>
-                    <th class="p-3 text-left">Tujuan</th>
-                    <th class="p-3 text-left">Perihal</th>
-                    <th class="p-3 text-left">Tanggal</th>
-                    <th class="p-3 text-left">File</th>
-                    <th class="p-3 text-left">Aksi</th>
+                    <th class="w-14 p-3 text-left">No</th>
+                    <th class="w-40 p-3 text-left">No Surat</th>
+                    <th class="w-28 p-3 text-left">Jenis</th>
+                    <th class="w-64 p-3 text-left">Relasi Surat</th>
+                    <th class="w-44 p-3 text-left">Tujuan</th>
+                    <th class="w-64 p-3 text-left">Perihal</th>
+                    <th class="w-36 p-3 text-left">Tanggal</th>
+                    <th class="w-28 p-3 text-left">File</th>
+                    <th class="w-40 p-3 text-center">Aksi</th>
                 </tr>
             </thead>
 
             <tbody>
                 @forelse ($arsip as $index => $item)
-                    <tr class="border-b hover:bg-gray-50/70 transition">
+                    <tr class="border-b hover:bg-gray-50/70 transition align-top">
 
                         <td class="p-3 text-gray-500">
                             {{ $arsip->firstItem() + $index }}
                         </td>
 
-                        <td class="p-3 font-medium text-gray-800">
+                        <td class="p-3 font-medium text-gray-800 break-words">
                             {{ $item->no_surat }}
                         </td>
 
@@ -99,42 +99,44 @@
                         </td>
 
                         <td class="p-3 text-gray-700">
-                            <div class="font-medium text-gray-800">
-                                Pengirim: {{ $item->pengirim ?? '-' }}
-                            </div>
+                            <div class="space-y-1">
+                                <div class="font-medium text-gray-800 break-words">
+                                    Pengirim: {{ $item->pengirim ?? '-' }}
+                                </div>
 
-                            <div class="text-xs font-medium text-gray-400 mt-1 space-y-0.5">
-                                @if ($item->jenis_surat === 'masuk')
+                                <div class="text-xs text-gray-500 space-y-0.5">
+                                    @if ($item->jenis_surat === 'masuk')
+                                        <div>
+                                            Penerima:
+                                            <span class="font-medium">
+                                                {{ $item->penerima ?? '-' }}
+                                            </span>
+                                        </div>
+                                    @else
+                                        <div>
+                                            Pembuat:
+                                            <span class="font-medium">
+                                                {{ $item->pembuat ?? '-' }}
+                                            </span>
+                                        </div>
+                                    @endif
+
                                     <div>
-                                        Penerima:
-                                        <span class="font-medium text-gray-500">
-                                            {{ $item->penerima ?? '-' }}
+                                        Pengupload:
+                                        <span class="font-medium">
+                                            {{ optional($item->creator)->name ?? 'System' }}
                                         </span>
                                     </div>
-                                @else
-                                    <div>
-                                        Pembuat:
-                                        <span class="font-medium text-gray-500">
-                                            {{ $item->pembuat ?? '-' }}
-                                        </span>
-                                    </div>
-                                @endif
-
-                                <div>
-                                    Pengupload:
-                                    <span class="font-medium text-gray-500">
-                                        {{ optional($item->creator)->name ?? 'System' }}
-                                    </span>
                                 </div>
                             </div>
                         </td>
 
-                        <td class="p-3 text-gray-700">
+                        <td class="p-3 text-gray-700 break-words">
                             {{ $item->tujuan ?? '-' }}
                         </td>
 
                         <td class="p-3">
-                            <div class="font-medium text-gray-800">
+                            <div class="font-medium text-gray-800 break-words">
                                 {{ $item->perihal }}
                             </div>
 
@@ -146,9 +148,8 @@
                             </div>
                         </td>
 
-                        {{-- Tanggal + update info --}}
                         <td class="p-3">
-                            <div class="text-gray-800">
+                            <div class="text-gray-800 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}
                             </div>
 
@@ -161,7 +162,7 @@
                             @if ($item->file_surat)
                                 <a href="{{ \Illuminate\Support\Str::startsWith($item->file_surat, ['http://', 'https://']) ? $item->file_surat : Storage::url($item->file_surat) }}"
                                     target="_blank"
-                                    class="inline-flex items-center gap-1.5 font-medium text-blue-500 hover:bg-blue-100 px-2.5 py-1 rounded-full transition-colors">
+                                    class="inline-flex items-center gap-1.5 font-medium text-blue-500 hover:bg-blue-100 px-2.5 py-1 rounded-full transition-colors whitespace-nowrap">
                                     <i class="fi fi-rr-file"></i> Preview
                                 </a>
                             @else
@@ -172,21 +173,30 @@
                         <td class="p-3">
                             <div class="flex items-center justify-center gap-2">
 
-                                <button
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                                           bg-amber-400 text-white rounded-xl
-                                           hover:bg-amber-500 transition-colors"
-                                    wire:click="edit({{ $item->id }})">
-                                    <i class="fi fi-rr-pencil leading-none"></i>
-                                    Edit
-                                </button>
+                                @if ($this->canManageArsip($item))
+                                    <button
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                                       bg-amber-400 text-white rounded-xl
+                                       hover:bg-amber-500 transition-colors whitespace-nowrap"
+                                        wire:click="edit({{ $item->id }})">
+                                        <i class="fi fi-rr-pencil leading-none"></i>
+                                        Edit
+                                    </button>
 
-                                <button wire:click="confirmDelete({{ $item->id }})"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
-                                           bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">
-                                    <i class="fi fi-rr-trash"></i>
-                                    Hapus
-                                </button>
+                                    <button wire:click="confirmDelete({{ $item->id }})"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                                       bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors whitespace-nowrap">
+                                        <i class="fi fi-rr-trash"></i>
+                                        Hapus
+                                    </button>
+                                @else
+                                    <button type="button" disabled title="Anda hanya dapat melihat arsip ini"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+                                       bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed whitespace-nowrap">
+                                        <i class="fi fi-rr-eye leading-none"></i>
+                                        Hanya Lihat
+                                    </button>
+                                @endif
 
                             </div>
                         </td>

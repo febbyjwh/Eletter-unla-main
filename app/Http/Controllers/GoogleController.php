@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Google\Client;
 use Google\Service\Drive;
 use Google\Service\Drive\DriveFile;
@@ -68,8 +69,15 @@ class GoogleController extends Controller
 
     public function callback(Request $request)
     {
-        $socialUser = Socialite::driver('google')->user();
-        $mode = session('auth_mode');
+        $mode = session('auth_mode', 'login');
+
+        try {
+            $socialUser = Socialite::driver('google')->user();
+        } catch (InvalidStateException $exception) {
+            return redirect('/')
+                ->with('error', 'Sesi login Google sudah kedaluwarsa. Silakan klik Login dengan Google lagi.');
+        }
+
         session()->forget('auth_mode');
 
         $unitTokenData = [
@@ -228,9 +236,6 @@ class GoogleController extends Controller
 
         $tahun = $date->year;
 
-        $bulan = $date->translatedFormat('F');
-        // Januari, Februari, dst
-
         $folderJenis = strtolower($jenisSurat) === 'masuk'
             ? 'Surat Masuk'
             : 'Surat Keluar';
@@ -242,22 +247,27 @@ class GoogleController extends Controller
             $rootId
         );
 
-        // Bulan
-        $monthId = self::getOrCreateFolder(
-            $drive,
-            $bulan,
-            $yearId
-        );
-
         // Surat Masuk / Surat Keluar
         $targetFolderId = self::getOrCreateFolder(
             $drive,
             $folderJenis,
-            $monthId
+            $yearId
         );
 
+        $originalName = pathinfo(
+            $file->getClientOriginalName(),
+            PATHINFO_FILENAME
+        );
+
+        $fileName =
+            $date->format('Y-m-d')
+            . '_surat-' . strtolower($jenisSurat)
+            . '_' . \Illuminate\Support\Str::slug($originalName)
+            . '.'
+            . $file->getClientOriginalExtension();
+
         $fileMeta = new DriveFile([
-            'name'    => $file->getClientOriginalName(),
+            'name'    => $fileName,
             'parents' => [$targetFolderId],
         ]);
 

@@ -87,21 +87,37 @@ class ArsipAdmin extends Component
         if ($this->new_file) {
             $unit = auth()->user()?->unit;
 
-            if ($unit?->google_access_token && $unit?->google_drive_folder_id) {
-                try {
-                    $upload = GoogleController::uploadFileToDrive(
-                        $this->new_file,
-                        $this->jenis_surat,
-                        $this->tanggal
-                    );
+            if (!$unit) {
+                $this->addError(
+                    'new_file',
+                    'Anda belum terhubung ke unit. Silahkan hubungi administrator untuk dapat mengupload surat.'
+                );
+                return;
+            }
 
-                    $filePath = $upload['url'] ?? null;
-                } catch (\Exception $e) {
-                    $filePath = $this->storeFileLocally();
-                    session()->flash('message', 'File disimpan lokal karena upload Google Drive gagal: ' . $e->getMessage());
-                }
-            } else {
-                $filePath = $this->storeFileLocally();
+            if (!$unit->google_access_token || !$unit->google_drive_folder_id) {
+                $this->addError(
+                    'new_file',
+                    'Unit belum terhubung ke Google Drive. Hubungi administrator.'
+                );
+                return;
+            }
+
+            try {
+                $upload = GoogleController::uploadFileToDrive(
+                    $this->new_file,
+                    $this->jenis_surat,
+                    $this->tanggal
+                );
+
+                $filePath = $upload['url'] ?? null;
+            } catch (\Exception $e) {
+                $this->addError(
+                    'new_file',
+                    $e->getMessage()
+                );
+
+                return;
             }
         }
 
@@ -133,7 +149,14 @@ class ArsipAdmin extends Component
             'file_surat' => $filePath,
         ];
         if ($this->isEdit) {
-            $this->arsipQuery()->findOrFail($this->arsipId)->update($data);
+            $arsip = $this->arsipQuery()->findOrFail($this->arsipId);
+
+            if (!$this->canManageArsip($arsip)) {
+                session()->flash('message', 'Anda tidak memiliki izin untuk mengubah arsip ini.');
+                return;
+            }
+
+            $arsip->update($data);
         } else {
             Arsip::create(array_merge($data, [
                 'user_id' => auth()->id(),
@@ -155,6 +178,11 @@ class ArsipAdmin extends Component
     {
         $arsip = $this->arsipQuery()->findOrFail($id);
 
+        if (!$this->canManageArsip($arsip)) {
+            session()->flash('message', 'Anda tidak memiliki izin untuk mengedit arsip ini.');
+            return;
+        }
+
         $this->arsipId = $arsip->id;
         $this->jenis_surat = $arsip->jenis_surat;
         $this->no_surat = $arsip->no_surat;
@@ -167,7 +195,6 @@ class ArsipAdmin extends Component
         $this->perihal = $arsip->perihal;
         $this->tanggal = $arsip->tanggal;
 
-        // simpan file lama (jangan langsung overwrite)
         $this->file_surat = $arsip->file_surat;
         $this->new_file = null;
 
@@ -224,6 +251,24 @@ class ArsipAdmin extends Component
         $this->dispatch('show-delete-confirmation', id: $id);
     }
 
+    public function canManageArsip(Arsip $arsip): bool
+    {
+        $user = auth()->user();
+
+        // Super Admin boleh kelola semua
+        if ((int) $user->role_id === 1) {
+            return true;
+        }
+
+        // Unit boleh kelola semua arsip dalam unitnya
+        if ((int) $user->role_id === 3) {
+            return true;
+        }
+
+        // User biasa hanya boleh kelola arsip miliknya sendiri
+        return (int) $arsip->user_id === (int) $user->id;
+    }
+
     protected function arsipQuery()
     {
         $user = auth()->user();
@@ -249,9 +294,23 @@ class ArsipAdmin extends Component
     private function storeFileLocally(): string
     {
         $extension = $this->new_file->getClientOriginalExtension();
-        $fileName = Str::slug($this->no_surat . '_' . $this->tanggal . '_' . $this->perihal, '_') . '.' . $extension;
 
-        return $this->new_file->storeAs('arsip_files', $fileName, 'public');
+        $originalName = pathinfo(
+            $this->new_file->getClientOriginalName(),
+            PATHINFO_FILENAME
+        );
+
+        $fileName =
+            $this->tanggal
+            . '_surat-' . $this->jenis_surat
+            . '_' . Str::slug($originalName)
+            . '.' . $extension;
+
+        return $this->new_file->storeAs(
+            'arsip_files',
+            $fileName,
+            'public'
+        );
     }
 
     public function render()

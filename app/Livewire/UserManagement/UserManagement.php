@@ -7,6 +7,7 @@ use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Unit;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Hash;
 
 class UserManagement extends Component
@@ -213,6 +214,17 @@ class UserManagement extends Component
         session()->flash('success', 'User berhasil diupdate!');
         $this->closeModal();
         $this->resetForm();
+    }
+
+    public function confirmDelete($id)
+    {
+        $this->dispatch('show-user-delete-confirmation', id: $id);
+    }
+
+    #[On('deleteUserConfirmed')]
+    public function handleDelete($id)
+    {
+        $this->delete($id);
     }
 
     public function delete($id)

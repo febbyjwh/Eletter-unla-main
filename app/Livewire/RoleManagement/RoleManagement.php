@@ -8,6 +8,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Role;
 use App\Models\Permission;
+use Livewire\Attributes\On;
 
 class RoleManagement extends Component
 {
@@ -44,8 +45,14 @@ class RoleManagement extends Component
         'description' => 'nullable|string|max:255',
     ];
 
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingPerPage() { $this->resetPage(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
 
     // Render dengan permission check
     public function render()
@@ -55,15 +62,15 @@ class RoleManagement extends Component
         $query = Role::query();
 
         if ($this->search) {
-            $query->where('name', 'like', '%'.$this->search.'%')
-                  ->orWhere('description', 'like', '%'.$this->search.'%');
+            $query->where('name', 'like', '%' . $this->search . '%')
+                ->orWhere('description', 'like', '%' . $this->search . '%');
         }
 
         $allowedSort = ['name', 'description', 'created_at'];
         $sortField = in_array($this->sortField, $allowedSort) ? $this->sortField : 'name';
 
         $roles = $query->orderBy($sortField, $this->sortDirection)
-                       ->paginate($this->perPage);
+            ->paginate($this->perPage);
 
         return view('livewire.role-management.role-management', ['roles' => $roles]);
     }
@@ -114,9 +121,18 @@ class RoleManagement extends Component
     }
 
     // Modal controls
-    public function minimize() { $this->isMinimized = true; }
-    public function restore() { $this->isMinimized = false; }
-    public function toggleFullscreen() { $this->isFullscreen = !$this->isFullscreen; }
+    public function minimize()
+    {
+        $this->isMinimized = true;
+    }
+    public function restore()
+    {
+        $this->isMinimized = false;
+    }
+    public function toggleFullscreen()
+    {
+        $this->isFullscreen = !$this->isFullscreen;
+    }
 
     // CRUD dengan permission check
     public function store()
@@ -155,6 +171,17 @@ class RoleManagement extends Component
         $this->resetForm();
     }
 
+    public function confirmDelete($id)
+    {
+        $this->dispatch('show-delete-confirmation', id: $id);
+    }
+
+    #[On('deleteConfirmed')]
+    public function handleDelete($id)
+    {
+        $this->delete($id);
+    }
+
     public function delete($id)
     {
         $this->authorizePermission('manage_users');
@@ -166,7 +193,7 @@ class RoleManagement extends Component
 
     /**
      * PERMISSION
-    */
+     */
     public function openPermissionModal($roleId)
     {
         $role = Role::findOrFail($roleId);
@@ -182,9 +209,18 @@ class RoleManagement extends Component
         $this->showPermissionModal = false;
     }
 
-    public function minimizePermissionModal() { $this->isMinimizedPermission = true; }
-    public function restorePermissionModal() { $this->isMinimizedPermission = false; }
-    public function toggleFullscreenPermission() { $this->isFullscreenPermission = !$this->isFullscreenPermission; }
+    public function minimizePermissionModal()
+    {
+        $this->isMinimizedPermission = true;
+    }
+    public function restorePermissionModal()
+    {
+        $this->isMinimizedPermission = false;
+    }
+    public function toggleFullscreenPermission()
+    {
+        $this->isFullscreenPermission = !$this->isFullscreenPermission;
+    }
 
     public function savePermissions()
     {
@@ -202,7 +238,7 @@ class RoleManagement extends Component
             ];
         }
 
-        if(!empty($insertData)){
+        if (!empty($insertData)) {
             DB::table('role_permission')->insert($insertData);
         }
 

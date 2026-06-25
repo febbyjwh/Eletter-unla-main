@@ -73,8 +73,7 @@
                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-400 text-white rounded-xl hover:bg-amber-500 transition duration-200">
                                         <i class="fi fi-rr-pencil leading-none"></i> Edit
                                     </button>
-                                    <button wire:click="delete({{ $role->id }})" wire:loading.attr="disabled"
-                                        wire:target="delete"
+                                    <button wire:click="confirmDelete({{ $role->id }})"
                                         class="px-3 py-1.5 text-xs bg-red-500 text-white rounded-xl hover:bg-red-600 transition duration-200">
                                         <i class="fi fi-rr-trash"></i> Hapus
                                     </button>
@@ -90,7 +89,10 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center p-4 text-gray-500">Belum ada data role.</td>
+                        <td colspan="9" class="text-center py-10 text-gray-400">
+                            <i class="fi fi-rr-folder-open text-2xl block mb-2"></i>
+                            Belum ada data role
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
@@ -238,4 +240,33 @@
             </span>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('livewire:init', () => {
+
+            Livewire.on('show-delete-confirmation', (event) => {
+
+                Swal.fire({
+                    title: 'Hapus Role?',
+                    text: 'Data role yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#9ca3af',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal',
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        Livewire.dispatch('deleteConfirmed', {
+                            id: event.id
+                        });
+                    }
+
+                });
+
+            });
+
+        });
+    </script>
 </div>

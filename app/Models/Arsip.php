@@ -19,13 +19,12 @@ class Arsip extends Model
         'jenis_surat',
         'no_surat',
         'pengirim',
+        'pembuat',
         'penerima',
-
         'pembuat',
         'tujuan',
         'penanda_tangan',
         'pengupload',
-
         'perihal',
         'tanggal',
         'file_surat',

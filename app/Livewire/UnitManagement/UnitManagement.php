@@ -231,10 +231,10 @@ class UnitManagement extends Component
             }
 
             $yearId  = $getOrCreateFolder((string) now()->year, $rootId);
-            $monthId = $getOrCreateFolder(now()->translatedFormat('F'), $yearId);
+            // $monthId = $getOrCreateFolder(now()->translatedFormat('F'), $yearId);
 
-            $getOrCreateFolder('Surat Masuk', $monthId);
-            $getOrCreateFolder('Surat Keluar', $monthId);
+            $getOrCreateFolder('Surat Masuk', $yearId);
+            $getOrCreateFolder('Surat Keluar', $yearId);
 
             $unit->update([
                 'google_drive_folder_id' => $rootId,

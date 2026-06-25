@@ -14,7 +14,7 @@ class SuratKeluarManagement extends Component
     use WithPagination, WithFileUploads;
 
     // Form fields
-    public $suratId, $no_surat, $pengirim, $penerima, $perihal, $tanggal, $file_surat, $existingFile, $preview;
+    public $suratId, $no_surat, $pengirim, $pembuat, $tujuan, $penanda_tangan, $pengupload, $penerima, $perihal, $tanggal, $file_surat, $existingFile, $preview;
 
     // UI states
     public $isEdit = false;
@@ -32,7 +32,10 @@ class SuratKeluarManagement extends Component
     protected $rules = [
         'no_surat'   => 'required|string|max:100',
         'pengirim'   => 'required|string|max:150',
-        'penerima'   => 'required|string|max:150',
+        'pembuat'    => 'nullable|string|max:150',
+        'tujuan'     => 'required|string|max:150',
+        'penanda_tangan' => 'nullable|string|max:150',
+        'pengupload' => 'nullable|string|max:150',
         'perihal'    => 'required|string|max:200',
         'tanggal'    => 'required|date',
         'file_surat' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
@@ -49,12 +52,15 @@ class SuratKeluarManagement extends Component
             $query->where(function($q) {
                 $q->where('no_surat', 'like', '%'.$this->search.'%')
                   ->orWhere('pengirim', 'like', '%'.$this->search.'%')
-                  ->orWhere('penerima', 'like', '%'.$this->search.'%')
+                  ->orWhere('pembuat', 'like', '%'.$this->search.'%')
+                  ->orWhere('tujuan', 'like', '%'.$this->search.'%')
+                  ->orWhere('penanda_tangan', 'like', '%'.$this->search.'%')
+                  ->orWhere('pengupload', 'like', '%'.$this->search.'%')
                   ->orWhere('perihal', 'like', '%'.$this->search.'%');
             });
         }
 
-        $allowedSort = ['no_surat', 'pengirim', 'penerima', 'perihal', 'tanggal'];
+        $allowedSort = ['no_surat', 'pengirim', 'pembuat', 'tujuan', 'penanda_tangan', 'pengupload', 'perihal', 'tanggal'];
         $sortField = in_array($this->sortField, $allowedSort) ? $this->sortField : 'tanggal';
 
         $surats = $query->orderBy($sortField, $this->sortDirection)
@@ -90,6 +96,10 @@ class SuratKeluarManagement extends Component
             $surat = SuratKeluar::findOrFail($id);
             $this->no_surat     = $surat->no_surat;
             $this->pengirim     = $surat->pengirim;
+            $this->pembuat      = $surat->pembuat;
+            $this->tujuan       = $surat->tujuan ?? $surat->penerima;
+            $this->penanda_tangan = $surat->penanda_tangan;
+            $this->pengupload   = $surat->pengupload;
             $this->penerima     = $surat->penerima;
             $this->perihal      = $surat->perihal;
             $this->tanggal      = $surat->tanggal;
@@ -112,6 +122,10 @@ class SuratKeluarManagement extends Component
         $this->suratId = null;
         $this->no_surat = '';
         $this->pengirim = '';
+        $this->pembuat = '';
+        $this->tujuan = '';
+        $this->penanda_tangan = '';
+        $this->pengupload = '';
         $this->penerima = '';
         $this->perihal = '';
         $this->tanggal = '';
@@ -127,7 +141,11 @@ class SuratKeluarManagement extends Component
         $data = [
             'no_surat'        => $this->no_surat,
             'pengirim'        => $this->pengirim,
-            'penerima'        => $this->penerima,
+            'pembuat'         => $this->pembuat,
+            'tujuan'          => $this->tujuan,
+            'penanda_tangan'  => $this->penanda_tangan,
+            'pengupload'      => $this->pengupload,
+            'penerima'        => $this->tujuan,
             'perihal'         => $this->perihal,
             'tanggal'         => $this->tanggal,
             'user_id'         => auth()->id(),

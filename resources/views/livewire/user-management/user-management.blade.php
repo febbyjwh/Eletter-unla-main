@@ -173,9 +173,9 @@
                                     Edit
                                 </button>
 
-                                <button wire:click="delete({{ $user->id }})" wire:confirm="Yakin hapus user ini?"
+                                <button wire:click="confirmDelete({{ $user->id }})"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs
-                                           bg-red-500 text-white rounded-xl hover:bg-red-600 transition duration-200">
+           bg-red-500 text-white rounded-xl hover:bg-red-600 transition duration-200">
                                     <i class="fi fi-rr-trash leading-none"></i>
                                     Hapus
                                 </button>
@@ -185,8 +185,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center p-4 text-gray-500">
-                            🙅 Belum ada data user.
+                        <td colspan="9" class="text-center py-10 text-gray-400">
+                            <i class="fi fi-rr-folder-open text-2xl block mb-2"></i>
+                            Belum ada data user
                         </td>
                     </tr>
                 @endforelse
@@ -338,4 +339,33 @@
             </span>
         </div>
     </div>
+    <script>
+        document.addEventListener('livewire:init', () => {
+
+            Livewire.on('show-user-delete-confirmation', (event) => {
+
+                Swal.fire({
+                    title: 'Hapus User?',
+                    text: 'Data user yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#9ca3af',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal',
+                    borderRadius: 20,
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+                        Livewire.dispatch('deleteUserConfirmed', {
+                            id: event.id
+                        });
+                    }
+
+                });
+
+            });
+
+        });
+    </script>
 </div>

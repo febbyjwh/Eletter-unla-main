@@ -14,12 +14,12 @@ class SuratMasukManagement extends Component
     use WithPagination, WithFileUploads;
 
     // Form fields (aku tetap simpan variabel lama juga supaya kode kamu nggak "hilang")
-    public $suratId, $no_surat, $unit_pengirim, $unit_penerima, $perihal, $deskripsi, $tembusan, $tanggal, $file_surat, $existingFile, $pengirim, $penerima, $preview;
+    public $suratId, $no_surat, $unit_pengirim, $unit_penerima, $perihal, $deskripsi, $tembusan, $tanggal, $file_surat, $existingFile, $pengirim, $penerima, $penanda_tangan, $tujuan, $pengupload, $preview;
 
     // UI states (sediakan BOTH nama agar kompatibel)
     public $isEdit = false;
-    public $showModal = false;      // nama lama yang kamu gunakan sebelumnya
-    public $isModalOpen = false;    // nama yang dipakai Blade sekarang
+    public $showModal = false;  
+    public $isModalOpen = false;  
     public $isMinimized = false;
     public $isFullscreen = false;
 
@@ -68,6 +68,9 @@ class SuratMasukManagement extends Component
         'no_surat'   => 'required|string|max:100',
         'pengirim'   => 'required|string|max:150',
         'penerima'   => 'required|string|max:150', 
+        'penanda_tangan' => 'nullable|string|max:150',
+        'tujuan'     => 'nullable|string|max:150',
+        'pengupload' => 'nullable|string|max:150',
         'perihal'    => 'required|string|max:200',
         'tanggal'    => 'required|date',
         'file_surat' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
@@ -85,11 +88,14 @@ class SuratMasukManagement extends Component
                 $q->where('no_surat', 'like', '%'.$this->search.'%')
                   ->orWhere('pengirim', 'like', '%'.$this->search.'%')
                   ->orWhere('penerima', 'like', '%'.$this->search.'%')
+                  ->orWhere('penanda_tangan', 'like', '%'.$this->search.'%')
+                  ->orWhere('tujuan', 'like', '%'.$this->search.'%')
+                  ->orWhere('pengupload', 'like', '%'.$this->search.'%')
                   ->orWhere('perihal', 'like', '%'.$this->search.'%');
             });
         }
 
-        $allowedSort = ['no_surat','pengirim','penerima','perihal','tanggal'];
+        $allowedSort = ['no_surat','pengirim','penerima','penanda_tangan','tujuan','pengupload','perihal','tanggal'];
         $sortField = in_array($this->sortField, $allowedSort) ? $this->sortField : 'tanggal';
 
         $surats = $query->orderBy($sortField, $this->sortDirection)
@@ -128,6 +134,9 @@ class SuratMasukManagement extends Component
             $this->unit_pengirim = $surat->pengirim ?? '';
             $this->pengirim      = $surat->pengirim ?? '';
             $this->penerima      = $surat->penerima ?? '';
+            $this->penanda_tangan = $surat->penanda_tangan ?? '';
+            $this->tujuan        = $surat->tujuan ?? '';
+            $this->pengupload    = $surat->pengupload ?? '';
             $this->unit_penerima = null;
             $this->perihal       = $surat->perihal;
             $this->deskripsi     = null;
@@ -160,6 +169,10 @@ class SuratMasukManagement extends Component
         $this->file_surat = null;
         $this->existingFile = null;
         $this->pengirim = '';
+        $this->penerima = '';
+        $this->penanda_tangan = '';
+        $this->tujuan = '';
+        $this->pengupload = '';
         $this->isEdit = false;
     }
 
@@ -171,6 +184,9 @@ class SuratMasukManagement extends Component
             'no_surat'        => $this->no_surat,
             'pengirim'        => $this->pengirim,
             'penerima'        => $this->penerima,
+            'penanda_tangan'  => $this->penanda_tangan,
+            'tujuan'          => $this->tujuan,
+            'pengupload'      => $this->pengupload,
             'perihal'         => $this->perihal,
             'tanggal'         => $this->tanggal,
             'user_id'         => auth()->id(),

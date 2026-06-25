@@ -111,7 +111,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center p-4 text-gray-500">
+                        <td colspan="9" class="text-center py-10 text-gray-400">
+                            <i class="fi fi-rr-folder-open text-2xl block mb-2"></i>
                             Belum ada data unit
                         </td>
                     </tr>

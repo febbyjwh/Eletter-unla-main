@@ -53,7 +53,7 @@ class Login extends Component
     
         session()->regenerate();
 
-        return redirect()->route('dashboard');
+        return redirect('/dashboard');
     }
 
     public function render()
