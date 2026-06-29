@@ -210,7 +210,7 @@ class GoogleController extends Controller
         return redirect('/dashboard');
     }
 
-    public static function uploadFileToDrive($file, string $jenisSurat, string $tanggal)
+    public static function uploadFileToDrive($file, string $jenisSurat, string $tanggal, string $perihal)
     {
         $user = auth()->user();
         $unit = $user->unit;
@@ -254,15 +254,14 @@ class GoogleController extends Controller
             $yearId
         );
 
-        $originalName = pathinfo(
-            $file->getClientOriginalName(),
-            PATHINFO_FILENAME
-        );
+        $firstFiveWords = collect(preg_split('/\s+/', trim($perihal)))
+            ->take(5)
+            ->implode(' ');
 
         $fileName =
             $date->format('Y-m-d')
-            . '_surat-' . strtolower($jenisSurat)
-            . '_' . \Illuminate\Support\Str::slug($originalName)
+            . '_'
+            . \Illuminate\Support\Str::slug($firstFiveWords)
             . '.'
             . $file->getClientOriginalExtension();
 

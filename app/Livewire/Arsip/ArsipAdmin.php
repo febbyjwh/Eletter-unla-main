@@ -107,7 +107,8 @@ class ArsipAdmin extends Component
                 $upload = GoogleController::uploadFileToDrive(
                     $this->new_file,
                     $this->jenis_surat,
-                    $this->tanggal
+                    $this->tanggal,
+                    $this->perihal
                 );
 
                 $filePath = $upload['url'] ?? null;
